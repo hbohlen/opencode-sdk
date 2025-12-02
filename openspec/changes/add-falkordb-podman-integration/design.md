@@ -69,8 +69,13 @@ spec:
           value: "localhost"
         - name: FALKORDB_PORT
           value: "6379"
-      dependsOn:
-        - falkordb
+      # Note: Use readiness probes instead of dependsOn for container ordering
+      readinessProbe:
+        tcpSocket:
+          port: 3000
+        initialDelaySeconds: 5
+        periodSeconds: 10
+      # Application should wait for FalkorDB connection in startup logic
 
     - name: web-ui
       image: opencode-web-ui:latest
@@ -79,8 +84,13 @@ spec:
       env:
         - name: VITE_API_URL
           value: "http://localhost:3000"
-      dependsOn:
-        - opencode-api
+      # Note: Container startup order handled via application-level health checks
+      readinessProbe:
+        httpGet:
+          path: /
+          port: 5173
+        initialDelaySeconds: 10
+        periodSeconds: 10
 
   volumes:
     - name: falkor-data
@@ -125,6 +135,11 @@ export class FalkorDBClient {
   }
 
   async query<T>(cypher: string, params?: Record<string, unknown>): Promise<T> {
+    // Always use parameterized queries to prevent Cypher injection
+    // Never concatenate user input directly into cypher strings
+    if (!params) {
+      params = {};
+    }
     const result = await this.graph.query(cypher, params);
     return result as T;
   }

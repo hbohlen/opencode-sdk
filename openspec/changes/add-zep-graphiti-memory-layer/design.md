@@ -166,13 +166,28 @@ export class EntityExtractor {
     this.extractionPrompt = ENTITY_EXTRACTION_PROMPT;
   }
 
+  // Sanitize message content to prevent prompt injection attacks
+  private sanitizeContent(content: string): string {
+    // Remove potential instruction injection patterns
+    // Limit length to prevent token abuse
+    const maxLength = 4000;
+    let sanitized = content.slice(0, maxLength);
+    // Escape common prompt injection patterns
+    sanitized = sanitized.replace(/```system/gi, '```code_block');
+    sanitized = sanitized.replace(/\[INST\]/gi, '[CONTENT]');
+    return sanitized;
+  }
+
   async extractEntities(message: Message): Promise<ExtractedEntities> {
+    // Sanitize message content to prevent prompt injection attacks
+    const sanitizedContent = this.sanitizeContent(message.content);
+    
     // Use OpenAI to identify entities in message
     const response = await this.openaiClient.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: this.extractionPrompt },
-        { role: "user", content: message.content },
+        { role: "user", content: sanitizedContent },
       ],
       response_format: { type: "json_object" },
     });
@@ -229,9 +244,11 @@ export class MemoryService {
     // 2. Add message to current episode
     await this.graphitiClient.addMessageToEpisode(sessionId, message);
 
-    // 3. Create/update entities in graph
-    for (const entity of entities.all()) {
-      await this.upsertEntity(entity);
+    // 3. Create/update entities in graph using batch operations for performance
+    const allEntities = entities.all();
+    if (allEntities.length > 0) {
+      // Use Promise.all for parallel processing of entity upserts
+      await Promise.all(allEntities.map(entity => this.upsertEntity(entity)));
     }
 
     // 4. Create edges between related entities
@@ -472,7 +489,9 @@ volumes:
 
 - Store API keys in environment variables
 - Never expose keys in client-side code
-- Use server-side proxy for API calls if needed
+- **GraphitiClient runs server-side only**: The GraphitiClient class is designed to run exclusively on the backend/API layer, not in browser contexts
+- For web-ui integrations, use a server-side API endpoint that proxies requests to Graphiti
+- API keys are injected via server-side environment variables and never sent to the client
 
 ### Data Privacy
 
