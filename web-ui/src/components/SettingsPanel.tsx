@@ -1,27 +1,68 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useOpenCode } from "../contexts/OpenCodeContext";
 
 export default function SettingsPanel() {
-  const { client, isConnected } = useOpenCode();
+  const { isConnected, connect, disconnect, isLoading, error } = useOpenCode();
   const [apiKey, setApiKey] = useState("");
   const [endpoint, setEndpoint] = useState("https://api.opencode-ai.com");
-  const [selectedProvider, setSelectedProvider] = useState("openai");
+  const [selectedProvider, setSelectedProvider] = useState("opencode");
 
-  const handleSaveSettings = () => {
-    // TODO: Implement settings persistence
-    console.log("Settings saved:", { apiKey, endpoint, selectedProvider });
-    alert(
-      "Settings saved! (Note: Persistence will be implemented in future tasks)",
-    );
+  const handleSaveSettings = async () => {
+    if (!apiKey.trim()) {
+      alert("Please enter an API key");
+      return;
+    }
+
+    try {
+      await connect(apiKey, endpoint);
+      // TODO: Implement settings persistence
+      localStorage.setItem("opencode-api-key", apiKey);
+      localStorage.setItem("opencode-endpoint", endpoint);
+      localStorage.setItem("opencode-provider", selectedProvider);
+      alert("Settings saved and connected successfully!");
+    } catch (err) {
+      alert(
+        `Failed to connect: ${err instanceof Error ? err.message : "Unknown error"}`,
+      );
+    }
   };
 
   const handleTestConnection = async () => {
-    // TODO: Implement connection test
-    console.log("Testing connection...");
-    alert(
-      "Connection test will be implemented when OpenCode SDK integration is complete.",
-    );
+    if (!apiKey.trim()) {
+      alert("Please enter an API key first");
+      return;
+    }
+
+    try {
+      await connect(apiKey, endpoint);
+      alert("Connection successful!");
+    } catch (err) {
+      alert(
+        `Connection failed: ${err instanceof Error ? err.message : "Unknown error"}`,
+      );
+    }
   };
+
+  const handleDisconnect = () => {
+    disconnect();
+    localStorage.removeItem("opencode-api-key");
+    localStorage.removeItem("opencode-endpoint");
+    localStorage.removeItem("opencode-provider");
+    setApiKey("");
+    setEndpoint("https://api.opencode-ai.com");
+    setSelectedProvider("opencode");
+  };
+
+  // Load saved settings on mount
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem("opencode-api-key");
+    const savedEndpoint = localStorage.getItem("opencode-endpoint");
+    const savedProvider = localStorage.getItem("opencode-provider");
+
+    if (savedApiKey) setApiKey(savedApiKey);
+    if (savedEndpoint) setEndpoint(savedEndpoint);
+    if (savedProvider) setSelectedProvider(savedProvider);
+  }, []);
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -37,16 +78,36 @@ export default function SettingsPanel() {
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Connection Status
               </span>
-              <div
-                className={`px-3 py-1 text-xs rounded-full ${
-                  isConnected
-                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                    : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                }`}
-              >
-                {isConnected ? "Connected" : "Disconnected"}
+              <div className="flex items-center space-x-2">
+                <div
+                  className={`px-3 py-1 text-xs rounded-full ${
+                    isConnected
+                      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                      : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                  }`}
+                >
+                  {isConnected ? "Connected" : "Disconnected"}
+                </div>
+                {isConnected && (
+                  <button
+                    onClick={handleDisconnect}
+                    className="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors"
+                  >
+                    Disconnect
+                  </button>
+                )}
               </div>
             </div>
+            {error && (
+              <div className="mt-2 p-2 bg-red-100 dark:bg-red-900 rounded text-red-700 dark:text-red-300 text-sm">
+                {error}
+              </div>
+            )}
+            {isLoading && (
+              <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                Connecting...
+              </div>
+            )}
           </div>
 
           {/* API Settings */}

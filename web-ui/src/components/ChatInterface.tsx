@@ -13,6 +13,7 @@ export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || !client || !isConnected) return;
@@ -29,19 +30,49 @@ export default function ChatInterface() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement OpenCode SDK integration for chat
-      setTimeout(() => {
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content: "OpenCode integration will be implemented here.",
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
-        setIsLoading(false);
-      }, 1000);
+      // Create or get session
+      let currentSessionId = sessionId;
+      if (!currentSessionId) {
+        const sessionResponse = await client.session.create();
+        currentSessionId = sessionResponse.data?.id || "";
+        setSessionId(currentSessionId);
+      }
+
+      // Send message to session
+      const response = await client.session.prompt({
+        path: {
+          id: currentSessionId,
+        },
+        body: {
+          parts: [
+            {
+              type: "text",
+              text: inputValue,
+            },
+          ],
+        },
+      });
+
+      const textPart = response.data?.parts?.find(
+        (part) => part.type === "text",
+      );
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: textPart?.text || "No response received",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("Error sending message:", error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: `Error: ${error instanceof Error ? error.message : "Unknown error occurred"}`,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
     }
   };
