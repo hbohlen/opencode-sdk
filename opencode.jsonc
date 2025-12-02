@@ -63,63 +63,73 @@
     // TODO: RESEARCH WHAT TOOLS SHOULD BE CONFIGURED AND HOW
   },
 
+  // All providers go under the plural "providers" key
   "provider": {
-    "PROVIDER-NAME": {
-      "api": "",
-      "blacklist": [],
-      "env": [],
-      "id": "",
+    "minimax": {
+      // Use the Anthropic-compatible SDK for MiniMax M2
+      "npm": "@ai-sdk/anthropic",
+      "name": "MiniMax",
+
+      "options": {
+        // Anthropic-compatible endpoint (international)
+        // For China: https://api.minimaxi.com/anthropic/v1
+        "baseURL": "https://api.minimax.io/anthropic/v1",
+
+        // Optional if you prefer config-based auth instead of `opencode auth login`
+        // "apiKey": "{env:MINIMAX_API_KEY}"
+      },
+
       "models": {
-        "MODEL": {
-          "attachment": false,
-          "cost": {
-            "cache_read": 0,
-            "cache_write": 0,
-            "context_over_200k": {
-              "cache_read": 0,
-              "cache_write": 0,
-              "input": 0,
-              "output": 0,
-            },
-            "input": 0,
-            "output": 0,
-          },
-          "experimental": true,
-          "headers": {},
-          "id": "ID",
-          "limit": {
-            "context": 0,
-            "output": 0,
-          },
-          "modalities": {
-            "input": ["audio", "image", "pdf", "text", "video"],
-            "output": ["audio", "image", "pdf", "text", "video"],
-          },
-          "name": "NAME",
-          "options": {},
+        "MiniMax-M2": {
+          // Display name in /models
+          "name": "MiniMax-M2",
+
+          // Let OpenCode know this supports reasoning + tools
           "reasoning": true,
-          "release_date": "DATE",
-          "status": "alpha",
-          "temperature": true,
           "tool_call": true,
-          "provider": {
-            "npm": "",
+
+          // Context + output token limits so OpenCode can track headroom
+          "limit": {
+            "context": 200000,
+            "output": 8192,
           },
+
+          // Per-model options – these map straight into the Anthropic-style API
+          "options": {
+            "temperature": 0.7,
+            "top_p": 0.9,
+            "max_tokens": 8192,
+            "stream": true,
+          },
+
+          // If you really want to keep your extra metadata (cost, modalities, etc.)
+          // you can safely hang them off a metadata object, e.g.:
+          //
+          // "metadata": {
+          //   "attachment": true,
+          //   "cost": {
+          //     "cache_read": 0.0001,
+          //     "cache_write": 0.0001,
+          //     "context_over_200k": {
+          //       "cache_read": 0.0002,
+          //       "cache_write": 0.0002,
+          //       "input": 0.0005,
+          //       "output": 0.002
+          //     },
+          //     "input": 0.0003,
+          //     "output": 0.001
+          //   },
+          //   "modalities": {
+          //     "input": ["text", "image", "audio", "video"],
+          //     "output": ["text", "image"]
+          //   },
+          //   "release_date": "2024-12",
+          //   "status": "beta"
+          // }
         },
       },
-      "name": "NAME",
-      "npm": "",
-      "options": {
-        "apiKey": "",
-        "baseURL": "",
-        "enterpriseUrl": "",
-        "setCacheKey": true,
-        "timeout": 60000,
-      },
-      "whitelist": [],
     },
   },
-
   // NOTE: AGENTS
   "agent": {
     "plan": {

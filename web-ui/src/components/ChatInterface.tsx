@@ -9,14 +9,27 @@ interface Message {
 }
 
 export default function ChatInterface() {
-  const { client, isConnected } = useOpenCode();
+  const { isConnected, selectedProvider, selectedModel, availableModels } =
+    useOpenCode();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || !client || !isConnected) return;
+    if (!inputValue.trim()) return;
+
+    // Check if we have a selected provider and model for custom providers
+    if (!selectedProvider || !selectedModel) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content:
+          "Please select a provider and model in the Settings panel first.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -30,36 +43,59 @@ export default function ChatInterface() {
     setIsLoading(true);
 
     try {
-      // Create or get session
-      let currentSessionId = sessionId;
-      if (!currentSessionId) {
-        const sessionResponse = await client.session.create();
-        currentSessionId = sessionResponse.data?.id || "";
-        setSessionId(currentSessionId);
+      // Use custom provider API call instead of OpenCode SDK
+      const chatPayload = {
+        model: selectedModel.id,
+        messages: [{ role: "user", content: inputValue }],
+        max_tokens: selectedModel.maxTokens || 1000,
+        temperature: 0.7,
+      };
+
+      // Try different chat completion endpoint formats
+      const endpoints = [
+        `${selectedProvider.baseUrl}/v1/chat/completions`, // OpenAI-style
+        `${selectedProvider.baseUrl}/chat/completions`, // Z.ai and others
+      ];
+
+      let response: Response | null = null;
+      let lastError: Error | null = null;
+
+      for (const endpoint of endpoints) {
+        try {
+          response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              Authorization:
+                selectedProvider.authType === "bearer"
+                  ? `Bearer ${selectedProvider.apiKey}`
+                  : `Bearer ${selectedProvider.apiKey}`,
+              "Content-Type": "application/json",
+              ...selectedProvider.customHeaders,
+            },
+            body: JSON.stringify(chatPayload),
+          });
+
+          if (response.ok) break;
+        } catch (err) {
+          lastError = err instanceof Error ? err : new Error(String(err));
+        }
       }
 
-      // Send message to session
-      const response = await client.session.prompt({
-        path: {
-          id: currentSessionId,
-        },
-        body: {
-          parts: [
-            {
-              type: "text",
-              text: inputValue,
-            },
-          ],
-        },
-      });
+      if (!response || !response.ok) {
+        const errorMsg = response
+          ? `HTTP ${response.status}: ${response.statusText}`
+          : lastError?.message || "Failed to reach chat completions endpoint";
+        throw new Error(errorMsg);
+      }
 
-      const textPart = response.data?.parts?.find(
-        (part) => part.type === "text",
-      );
+      const data = await response.json();
+      const assistantContent =
+        data.choices?.[0]?.message?.content || "No response received";
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: textPart?.text || "No response received",
+        content: assistantContent,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, assistantMessage]);
@@ -90,17 +126,63 @@ export default function ChatInterface() {
         {/* Chat Header */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              OpenCode Assistant
-            </h2>
-            <div
-              className={`px-2 py-1 text-xs rounded-full ${
-                isConnected
-                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                  : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-              }`}
-            >
-              {isConnected ? "Connected" : "Disconnected"}
+            <div className="flex items-center space-x-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                OpenCode Assistant
+              </h2>
+              {selectedModel && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Model:
+                  </span>
+                  <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">
+                    {selectedModel.name}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center space-x-3">
+              {availableModels.length > 0 && (
+                <div className="flex items-center space-x-2">
+                  <label
+                    htmlFor="model-select"
+                    className="text-sm text-gray-600 dark:text-gray-400"
+                  >
+                    Model:
+                  </label>
+                  <select
+                    id="model-select"
+                    value={selectedModel?.id || ""}
+                    onChange={(e) => {
+                      // This will be handled by the context
+                      const model = availableModels.find(
+                        (m) => m.id === e.target.value,
+                      );
+                      if (model) {
+                        // For now, we'll just log - the context method will be called from settings
+                        console.log("Selected model:", model);
+                      }
+                    }}
+                    className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="">Select a model</option>
+                    {availableModels.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <div
+                className={`px-2 py-1 text-xs rounded-full ${
+                  isConnected
+                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                    : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                }`}
+              >
+                {isConnected ? "Connected" : "Disconnected"}
+              </div>
             </div>
           </div>
         </div>
