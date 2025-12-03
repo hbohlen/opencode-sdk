@@ -1,11 +1,33 @@
 # Tasks: Add Zep Graphiti SDK Integration for Memory Layer
 
+## BLOCKERS
+
+This proposal requires external services and infrastructure that are not currently available:
+
+1. **Zep Graphiti Service Required**: Requires either Zep Cloud account or self-hosted Graphiti instance
+2. **Neo4j Required for Self-Hosted**: Self-hosted Graphiti requires Neo4j database
+3. **OpenAI API Key Required**: Entity extraction uses OpenAI for processing
+4. **Backend Server Required**: GraphitiClient must run server-side (API keys cannot be exposed to browser)
+5. **Security Concerns**: Prompt injection prevention in entity extraction needs careful implementation
+
+## Prerequisites Not Met
+
+- [ ] Zep Graphiti account (cloud) or self-hosted Graphiti instance
+- [ ] Neo4j database (for self-hosted Graphiti)
+- [ ] OpenAI API key (for entity extraction)
+- [ ] Backend API server implementation
+
+---
+
 ## 1. Graphiti SDK Setup
 
 - [ ] 1.1 Add @getzep/graphiti-js npm package dependency
+  - **BLOCKER**: Requires backend server - GraphitiClient cannot run in browser
 - [ ] 1.2 Create GraphitiClient service class
+  - **SECURITY**: API keys must be stored server-side only
 - [ ] 1.3 Implement connection management (cloud and self-hosted)
 - [ ] 1.4 Add authentication handling for Zep API
+  - **BLOCKER**: Requires Zep API key
 - [ ] 1.5 Create TypeScript types for Graphiti operations
 
 ## 2. Memory Graph Schema
@@ -29,6 +51,8 @@
 ## 4. Entity Extraction Pipeline
 
 - [ ] 4.1 Create EntityExtractor service
+  - **BLOCKER**: Requires OpenAI API key
+  - **SECURITY**: Must sanitize input to prevent prompt injection
 - [ ] 4.2 Implement code reference extraction
 - [ ] 4.3 Add decision extraction from conversations
 - [ ] 4.4 Implement preference detection
@@ -38,6 +62,7 @@
 ## 5. Memory Query Interface
 
 - [ ] 5.1 Create MemoryService abstraction
+  - **BLOCKER**: Depends on Graphiti connection
 - [ ] 5.2 Implement semantic search across memory graph
 - [ ] 5.3 Add temporal query support
 - [ ] 5.4 Create context window optimization
@@ -47,6 +72,7 @@
 ## 6. OpenCodeContext Integration
 
 - [ ] 6.1 Extend OpenCodeContext with memory state
+  - **BLOCKER**: Requires backend API to proxy memory operations
 - [ ] 6.2 Add memory retrieval to conversation flow
 - [ ] 6.3 Implement automatic memory updates on message
 - [ ] 6.4 Add memory-aware context building
@@ -55,8 +81,10 @@
 ## 7. UI Components
 
 - [ ] 7.1 Create MemoryPanel component
+  - **BLOCKER**: Requires memory API to be functional
 - [ ] 7.2 Implement memory search interface
 - [ ] 7.3 Add memory visualization (graph view)
+  - **TODO**: Choose visualization library (D3.js, React Flow, etc.)
 - [ ] 7.4 Create entity detail views
 - [ ] 7.5 Implement memory timeline view
 - [ ] 7.6 Add memory settings configuration
@@ -72,7 +100,9 @@
 ## 9. Testing & Validation
 
 - [ ] 9.1 Create unit tests for GraphitiClient
+  - **BLOCKER**: No test framework configured
 - [ ] 9.2 Add integration tests for memory operations
+  - **BLOCKER**: Requires Graphiti service access
 - [ ] 9.3 Test entity extraction accuracy
 - [ ] 9.4 Validate memory retrieval relevance
 - [ ] 9.5 Performance testing for memory queries
@@ -98,3 +128,18 @@
 - Task 8 can run in parallel with Tasks 2-7
 - Task 9 depends on Tasks 1-7 (all components needed for testing)
 - Task 10 can start after Task 1 and continue throughout
+
+## Next Steps to Unblock
+
+1. **Create Backend Server**: Implement Node.js/Express backend to host GraphitiClient
+2. **Obtain Zep Account**: Sign up for Zep Cloud or set up self-hosted Graphiti
+3. **Obtain OpenAI API Key**: Required for entity extraction
+4. **Add Test Framework**: Configure testing for memory services
+5. **Security Review**: Implement prompt injection prevention in EntityExtractor
+
+## Relationship to Other Proposals
+
+This proposal complements:
+- **add-falkordb-podman-integration**: FalkorDB handles code structure, Graphiti handles conversation memory
+- **add-valkey-caching**: Valkey caches memory query results for faster retrieval
+- **add-observability-stack**: Memory operations can be traced with Langfuse/Langsmith

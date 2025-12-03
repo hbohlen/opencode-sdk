@@ -1,10 +1,30 @@
 # Tasks: Add FalkorDB SDK GraphDB in Podman Container
 
+## BLOCKERS
+
+This proposal requires infrastructure that is not currently implemented:
+
+1. **Podman Runtime Required**: This proposal requires Podman installed on the host system for container orchestration
+2. **Backend Server Required**: FalkorDB integration requires a backend API server (currently web-ui is client-only)
+3. **No Testing Infrastructure**: No automated test framework exists for the proposed services
+4. **Security Concerns**: Cypher query injection prevention needs careful implementation
+
+## Prerequisites Not Met
+
+- [ ] Podman installed on the host system
+- [ ] Backend API server implementation
+- [ ] Node.js 18+ runtime for FalkorDB SDK
+- [ ] Sufficient resources for running containerized services (min 2GB RAM recommended)
+
+---
+
 ## 1. Podman Pod Setup
 
 - [ ] 1.1 Create Podman Pod definition file (`podman-pod.yaml`)
+  - **BLOCKER**: Podman not installed in development environment
 - [ ] 1.2 Configure FalkorDB container with persistent volumes
 - [ ] 1.3 Configure opencode.ai backend container
+  - **BLOCKER**: No backend server exists yet
 - [ ] 1.4 Configure web-ui frontend container
 - [ ] 1.5 Set up shared networking between containers
 - [ ] 1.6 Add health checks and restart policies
@@ -13,7 +33,9 @@
 ## 2. FalkorDB SDK Integration
 
 - [ ] 2.1 Add falkordb npm package dependency
+  - **TODO**: Add to package.json when backend server is implemented
 - [ ] 2.2 Create FalkorDBClient service class
+  - See design.md for implementation pattern
 - [ ] 2.3 Implement connection pooling and management
 - [ ] 2.4 Add error handling and retry logic
 - [ ] 2.5 Create TypeScript types for graph operations
@@ -33,10 +55,12 @@
 - [ ] 4.3 Implement relationship management
 - [ ] 4.4 Add graph traversal utilities
 - [ ] 4.5 Create Cypher query builder utilities
+  - **SECURITY**: Must use parameterized queries to prevent Cypher injection
 
 ## 5. Web UI Integration
 
 - [ ] 5.1 Add graph context to OpenCodeContext
+  - **BLOCKER**: Requires backend API to proxy graph operations
 - [ ] 5.2 Create graph visualization components
 - [ ] 5.3 Implement graph-based code navigation
 - [ ] 5.4 Add relationship exploration UI
@@ -51,6 +75,7 @@
 ## 7. Testing & Validation
 
 - [ ] 7.1 Create unit tests for FalkorDBClient
+  - **BLOCKER**: No test framework configured
 - [ ] 7.2 Add integration tests for graph operations
 - [ ] 7.3 Test Podman Pod startup and connectivity
 - [ ] 7.4 Validate container health checks
@@ -73,3 +98,10 @@
 - Task 6 can run in parallel with Tasks 2-5
 - Task 7 depends on Tasks 1-6 (all components needed for testing)
 - Task 8 can start after Task 1 and continue throughout
+
+## Next Steps to Unblock
+
+1. **Create Backend Server**: Implement a Node.js/Express backend to host FalkorDB client
+2. **Install Podman**: Set up Podman runtime for container orchestration
+3. **Add Test Framework**: Configure Jest/Vitest for testing graph services
+4. **Security Review**: Ensure Cypher injection prevention is properly implemented
