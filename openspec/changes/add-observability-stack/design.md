@@ -328,15 +328,30 @@ export class LoggerService {
 
   // Redact sensitive data
   private redact(obj: Record<string, unknown>): Record<string, unknown> {
-    const sensitiveKeys = ["password", "apiKey", "token", "secret", "authorization"];
-    const redacted = { ...obj };
+    const sensitivePatterns = ["password", "apiKey", "token", "secret", "authorization"];
 
-    for (const key of Object.keys(redacted)) {
-      if (sensitiveKeys.some((sk) => key.toLowerCase().includes(sk))) {
+    const isSensitive = (str: string): boolean =>
+      sensitivePatterns.some((pattern) => str.toLowerCase().includes(pattern));
+
+    const redactValue = (value: unknown): unknown => {
+      if (typeof value === "string" && isSensitive(value)) {
+        return "[REDACTED]";
+      } else if (Array.isArray(value)) {
+        return value.map(redactValue);
+      } else if (value && typeof value === "object") {
+        return this.redact(value as Record<string, unknown>);
+      }
+      return value;
+    };
+
+    const redacted: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (isSensitive(key)) {
         redacted[key] = "[REDACTED]";
+      } else {
+        redacted[key] = redactValue(value);
       }
     }
-
     return redacted;
   }
 
