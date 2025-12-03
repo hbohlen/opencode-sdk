@@ -314,12 +314,7 @@ export class CacheService {
     await this.client.delete(key);
   }
 
-  async invalidatePattern(pattern: string): Promise<void> {
-    // Note: Requires SCAN for production use
-    // This is a simplified version
-    const fullPattern = `opencode:${pattern}`;
-    // Implementation would use SCAN and DEL
-  }
+  // Pattern-based invalidation (e.g., using SCAN and DEL) is a future enhancement.
 }
 ```
 
