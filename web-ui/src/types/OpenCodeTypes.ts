@@ -7,7 +7,8 @@ export interface OpenCodeConfig {
   retryDelay?: number;
 }
 
-// Session manager placeholder interface - methods to be added as needed
+// SessionManager is defined as an empty record type to serve as a placeholder for future session management functionality.
+// Extend this type with methods and properties as session management requirements are identified.
 export type SessionManager = Record<string, never>;
 
 // API request interface for chat completions
