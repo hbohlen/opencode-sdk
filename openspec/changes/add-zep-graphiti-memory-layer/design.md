@@ -168,13 +168,18 @@ export class EntityExtractor {
 
   // Sanitize message content to prevent prompt injection attacks
   private sanitizeContent(content: string): string {
-    // Remove potential instruction injection patterns
-    // Limit length to prevent token abuse
+    // Allowlist approach: Only allow safe code block types and printable ASCII characters.
+    // Remove any code block directives except for ```code and ```text.
     const maxLength = 4000;
     let sanitized = content.slice(0, maxLength);
-    // Escape common prompt injection patterns
-    sanitized = sanitized.replace(/```system/gi, '```code_block');
-    sanitized = sanitized.replace(/\[INST\]/gi, '[CONTENT]');
+    // Remove all code block directives except for ```code and ```text
+    sanitized = sanitized.replace(/```(?!code|text)[a-zA-Z0-9_-]+/g, '```code');
+    // Remove non-printable and non-ASCII characters
+    sanitized = sanitized.replace(/[^\x20-\x7E\n\r]/g, '');
+    // Remove lines starting with suspicious prompt injection patterns
+    sanitized = sanitized.split('\n').filter(line =>
+      !/^\s*(\[INST\]|system:|assistant:|user:)/i.test(line)
+    ).join('\n');
     return sanitized;
   }
 
