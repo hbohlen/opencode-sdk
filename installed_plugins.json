@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "plugins": {
+    "superpowers@superpowers-marketplace": {
+      "version": "3.4.1",
+      "installedAt": "2025-11-21T04:35:15.188Z",
+      "lastUpdated": "2025-11-21T04:35:15.188Z",
+      "installPath": "/home/hbohlen/.claude/plugins/cache/superpowers",
+      "gitCommitSha": "d90334e0308b6e508acc10c0a282fa237c1f4f6a",
+      "isLocal": false
+    },
+    "episodic-memory@superpowers-marketplace": {
+      "version": "1.0.13",
+      "installedAt": "2025-12-03T16:24:52.700Z",
+      "lastUpdated": "2025-12-03T16:24:52.700Z",
+      "installPath": "/home/hbohlen/.claude/plugins/cache/episodic-memory",
+      "gitCommitSha": "911b1c7a0bc31931a2883f7be807a5faf29e39e3",
+      "isLocal": false
+    },
+    "superpowers-lab@superpowers-marketplace": {
+      "version": "0.1.0",
+      "installedAt": "2025-12-03T16:24:53.037Z",
+      "lastUpdated": "2025-12-03T16:24:53.037Z",
+      "installPath": "/home/hbohlen/.claude/plugins/cache/superpowers-lab",
+      "gitCommitSha": "e2bea3b300f8370ec1fe650fde608c815458dd0b",
+      "isLocal": false
+    },
+    "superpowers@superpowers-dev": {
+      "version": "3.6.1",
+      "installedAt": "2025-12-03T16:29:07.035Z",
+      "lastUpdated": "2025-12-03T16:29:07.035Z",
+      "installPath": "/home/hbohlen/.claude/plugins/marketplaces/superpowers-dev/",
+      "gitCommitSha": "8462c20cce0ca37ff747d80fde4697fd45a98189",
+      "isLocal": true
+    }
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "name": "mcp-integration-skills",
+  "version": "1.0.0",
+  "description": "Collection of 6 skills integrating with MCP servers for advanced document processing, web search, sequential thinking, documentation search, repository analysis, and NixOS package management",
+  "author": "Claude Code",
+  "skills": [
+    {
+      "name": "using-docling-mcp",
+      "path": "docling/SKILL.md",
+      "script": "docling/extract-document.js",
+      "description": "Advanced document processing with table extraction, key-value detection, and OCR support"
+    },
+    {
+      "name": "using-brave-search-mcp",
+      "path": "brave-search/SKILL.md",
+      "script": "brave-search/web-search.js",
+      "description": "Real-time web search with current information and multiple result sources"
+    },
+    {
+      "name": "using-sequential-thinking-mcp",
+      "path": "sequential-thinking/SKILL.md",
+      "script": "sequential-thinking/think-step-by-step.js",
+      "description": "Structured step-by-step problem solving with progressive reasoning and hypothesis testing"
+    },
+    {
+      "name": "using-context7-mcp",
+      "path": "context7/SKILL.md",
+      "script": "context7/search-docs.js",
+      "description": "Comprehensive documentation search for libraries, frameworks, and APIs"
+    },
+    {
+      "name": "using-deepwiki-mcp",
+      "path": "deepwiki/SKILL.md",
+      "script": "deepwiki/analyze-repo.js",
+      "description": "GitHub repository exploration and code analysis with architecture understanding"
+    },
+    {
+      "name": "using-nixos-mcp",
+      "path": "nixos/SKILL.md",
+      "script": "nixos/nixos-helper.js",
+      "description": "NixOS package management, environment creation, and Nix expression generation"
+    }
+  ],
+  "mcpServers": {
+    "docling": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["--from=docling-mcp", "docling-mcp-server"],
+      "enabled": true
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "enabled": true
+    },
+    "nixos": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["mcp-nixos"],
+      "enabled": true
+    },
+    "brave-search": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "${env:BRAVE_API_KEY}"
+      },
+      "enabled": true
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "${env:CONTEXT7_API_KEY}"
+      },
+      "enabled": true
+    },
+    "deepwiki": {
+      "type": "http",
+      "url": "https://mcp.deepwiki.com/mcp",
+      "enabled": true
+    }
+  },
+  "tags": [
+    "mcp",
+    "document-processing",
+    "web-search",
+    "sequential-thinking",
+    "documentation",
+    "repository-analysis",
+    "nixos",
+    "package-management"
+  ],
+  "categories": [
+    "Development Tools",
+    "Research",
+    "Documentation"
+  ]
+}
