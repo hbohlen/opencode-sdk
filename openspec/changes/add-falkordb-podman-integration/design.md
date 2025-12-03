@@ -134,7 +134,30 @@ export class FalkorDBClient {
     this.graph = new Graph(this.client, this.config.graphName);
   }
 
+  // Validate that the Cypher query does not contain user input concatenation
+  private validateCypherQuery(cypher: string): void {
+    // Reject queries that appear to have string concatenation or interpolation
+    // Queries should only use $paramName placeholders for user input
+    const suspiciousPatterns = [
+      /\$\{.*\}/,           // Template literals
+      /\+\s*['"`]/,         // String concatenation
+      /['"`]\s*\+/,         // String concatenation
+      /concat\s*\(/i,       // CONCAT function with potential user input
+    ];
+    
+    for (const pattern of suspiciousPatterns) {
+      if (pattern.test(cypher)) {
+        throw new Error(
+          'Potential Cypher injection detected. Use parameterized queries with $paramName placeholders instead of string concatenation.'
+        );
+      }
+    }
+  }
+
   async query<T>(cypher: string, params?: Record<string, unknown>): Promise<T> {
+    // Validate query structure to prevent Cypher injection
+    this.validateCypherQuery(cypher);
+    
     // Always use parameterized queries to prevent Cypher injection
     // Never concatenate user input directly into cypher strings
     if (!params) {
@@ -229,14 +252,20 @@ services:
   falkordb:
     image: falkordb/falkordb:latest
     container_name: opencode-falkordb
-    ports:
-      - "6379:6379"
+    # Note: Port 6379 is NOT exposed externally for security
+    # FalkorDB is only accessible within the Pod network
+    # ports:
+    #   - "6379:6379"  # Uncomment only if external access is required
+    expose:
+      - "6379"  # Internal Pod network only
     volumes:
       - falkordb-data:/data
     environment:
       - FALKORDB_ARGS=--save 60 1 --appendonly yes
+      # Enable authentication for production deployments
+      - FALKORDB_REQUIREPASS=${FALKORDB_PASSWORD:-}
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${FALKORDB_PASSWORD:-}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 3

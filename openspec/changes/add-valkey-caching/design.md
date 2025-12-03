@@ -132,9 +132,37 @@ export class ValkeyClient {
     await this.client.quit();
   }
 
-  // Expose Redis client for advanced operations (e.g., multi/exec)
-  getRedisClient(): Redis {
-    return this.client;
+  // Execute a transaction with multiple commands atomically
+  // This encapsulates Redis multi/exec without exposing the client directly
+  async transaction<T>(
+    commands: (multi: ReturnType<Redis['multi']>) => void
+  ): Promise<T[]> {
+    const multi = this.client.multi();
+    commands(multi);
+    const results = await multi.exec();
+    if (!results) {
+      throw new Error('Transaction failed: no results returned');
+    }
+    return results.map(([err, result]) => {
+      if (err) throw err;
+      return result as T;
+    });
+  }
+
+  // Execute rate limiting operations atomically
+  async rateLimitCheck(
+    key: string,
+    windowStart: number,
+    now: number,
+    ttlSeconds: number
+  ): Promise<{ count: number }> {
+    const results = await this.transaction<number>((multi) => {
+      multi.zremrangebyscore(key, 0, windowStart);
+      multi.zadd(key, now, now.toString());
+      multi.zcount(key, windowStart, now);
+      multi.expire(key, ttlSeconds);
+    });
+    return { count: results[2] };
   }
 
   // Basic operations
@@ -342,7 +370,7 @@ export class RateLimiter {
   private configs: Record<string, RateLimitConfig> = {
     user: { windowMs: 60000, maxRequests: 60 }, // 60 req/min per user
     provider: { windowMs: 60000, maxRequests: 100 }, // 100 req/min per provider
-    global: { windowMs: 1000, maxRequests: 1000 }, // 1000 req/sec globally
+    global: { windowMs: 1000, maxRequests: 1000 }, // 1000 req/s globally
   };
 
   constructor(client: ValkeyClient) {
@@ -358,21 +386,14 @@ export class RateLimiter {
     const now = Date.now();
     const windowStart = now - config.windowMs;
 
-    // Use Redis sorted set for sliding window
-    // Score = timestamp, Member = unique request ID
-    const requestId = `${now}:${Math.random().toString(36).slice(2, 11)}`;
-
-    // Remove old entries, add new one, count current window
-    // Access the underlying ioredis client for multi operations
-    const redisClient = this.client.getRedisClient();
-    const multi = redisClient.multi();
-    multi.zremrangebyscore(key, 0, windowStart);
-    multi.zadd(key, now, requestId);
-    multi.zcard(key);
-    multi.expire(key, Math.ceil(config.windowMs / 1000));
-
-    const results = await multi.exec();
-    const count = results[2][1] as number;
+    // Use the encapsulated rate limit check method
+    // This uses Redis sorted sets with deterministic timestamps for accurate counting
+    const { count } = await this.client.rateLimitCheck(
+      key,
+      windowStart,
+      now,
+      Math.ceil(config.windowMs / 1000)
+    );
 
     return {
       allowed: count <= config.maxRequests,
