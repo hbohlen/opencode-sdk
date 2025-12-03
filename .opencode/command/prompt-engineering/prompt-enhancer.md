@@ -1,6 +1,8 @@
 ---
-description: "Research-backed prompt optimizer applying Stanford/Anthropic patterns with model- and task-specific effectiveness improvements"
+agent: openagent
+description: "Research-backed prompt enhancer that improves clarity, structure, and steerability."
 ---
+
 
 <target_file> $ARGUMENTS </target_file>
 

@@ -1,6 +1,8 @@
 ---
-description: Analyze and optimize code for performance, security, and potential issues
+agent: reviewer
+description: "Analyze and optimize code for performance, security, and potential issues"
 ---
+
 
 # Code Optimization Analysis
 

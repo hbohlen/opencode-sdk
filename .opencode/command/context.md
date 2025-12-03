@@ -1,6 +1,8 @@
 ---
-description: Analyze and understand the complete project context and structure
+agent: codebase-agent
+description: "Analyze and understand the complete project context and structure"
 ---
+
 
 # Project Context Analysis
 

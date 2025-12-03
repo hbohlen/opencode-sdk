@@ -1,6 +1,8 @@
 ---
-description: Run the complete testing pipeline
+agent: tester
+description: "Run the complete testing pipeline"
 ---
+
 
 # Testing Pipeline
 

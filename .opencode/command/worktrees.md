@@ -1,6 +1,8 @@
 ---
-description: Manage git worktrees for parallel development workflows
+agent: task-manager
+description: "Manage git worktrees for parallel development workflows"
 ---
+
 
 # Git Worktree Management
 

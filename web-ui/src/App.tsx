@@ -1,24 +1,23 @@
-import { Routes, Route } from "react-router-dom";
-import { OpenCodeProvider } from "./contexts/OpenCodeContext";
-import ChatInterface from "./components/ChatInterface";
-import SettingsPanel from "./components/SettingsPanel";
-import Header from "./components/Header";
-import "./App.css";
+import { OpenCodeProvider } from './lib/OpenCodeContext';
+import ChatInterface from './components/ChatInterface';
+import './App.css';
 
 function App() {
   return (
     <OpenCodeProvider>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Header />
-        <main className="container mx-auto px-4 py-6">
-          <Routes>
-            <Route path="/" element={<ChatInterface />} />
-            <Route path="/settings" element={<SettingsPanel />} />
-          </Routes>
+      <div className="h-screen flex flex-col">
+        <header className="bg-gray-800 text-white p-4">
+          <h1 className="text-xl font-bold">OpenCode Web UI</h1>
+        </header>
+        <main className="flex-1 overflow-hidden">
+          <ChatInterface />
         </main>
+        <footer className="bg-gray-100 p-2 text-center text-sm text-gray-500">
+          OpenCode Web Interface
+        </footer>
       </div>
     </OpenCodeProvider>
   );
 }
 
-export default App;
+export default App

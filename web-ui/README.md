@@ -1,73 +1,115 @@
-# React + TypeScript + Vite
+# OpenCode Web UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A web-based user interface for the opencode.ai SDK using TypeScript and React.
 
-Currently, two official plugins are available:
+## Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The OpenCode Web UI provides a browser-based interface to interact with OpenCode capabilities. This web application can be run on a VPS server and accessed via URL, allowing users to interact with OpenCode without using the terminal.
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Chat interface for interacting with OpenCode
+- Provider configuration (base URL, API keys, custom headers)
+- Model selection interface
+- Settings panel for configuration
+- Responsive design for desktop and mobile access
 
-## Expanding the ESLint configuration
+## Prerequisites
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Node.js (v18 or higher)
+- npm or yarn package manager
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Setup and Development
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Install dependencies:
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+2. Start the development server:
+```bash
+npm run dev
 ```
+
+3. Open your browser to [http://localhost:5173](http://localhost:5173)
+
+## Production Build
+
+To create a production build:
+
+```bash
+npm run build
+```
+
+The build artifacts will be placed in the `dist/` directory.
+
+## VPS Deployment
+
+1. After building, copy the contents of the `dist/` folder to your web server's public directory.
+
+2. Configure your web server (e.g., nginx) to serve the static files:
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        root /path/to/your/dist/folder;
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
+
+3. For HTTPS, you can use Let's Encrypt or your preferred SSL certificate provider.
+
+## Configuration
+
+To configure the OpenCode provider:
+
+1. Click the "Settings" button in the top right corner of the chat interface
+2. Go to the "Providers" tab
+3. Enter your provider's base URL and API key
+4. Click "Save Configuration"
+
+## Customization
+
+The UI uses Tailwind CSS for styling. You can customize the look and feel by modifying:
+- `src/index.css` - Main styles
+- Component files in `src/components/`
+- `tailwind.config.js` - Tailwind configuration
+
+## Architecture
+
+- **React 18** with TypeScript for type safety
+- **Vite** for fast development and optimized builds
+- **Tailwind CSS** for rapid UI development
+- **@opencode-ai/sdk** for OpenCode functionality
+
+## Components
+
+- `ChatInterface`: Main chat UI with message history and input
+- `SettingsPanel`: Configuration panel for providers and models
+- `OpenCodeProvider`: Context provider for OpenCode SDK integration
+
+## Environment Variables
+
+Currently, the application doesn't use environment variables hardcoded in the build. Configuration is done through the UI.
+
+## Troubleshooting
+
+- If you encounter issues with API calls, make sure your OpenCode provider supports CORS requests from your domain.
+- Check browser console for any error messages when troubleshooting.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Commit your changes (`git commit -m 'Add some amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

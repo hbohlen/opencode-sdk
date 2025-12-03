@@ -48,14 +48,12 @@
 
   // NOTE: PERMISSIONS
   "permission": {
-    // TODO: RESEARCH BEST SETTINGS FOR PERMISSIONS
-    // ALL OF THESE HAVE THE OPTION FOR `allow`, `deny`, or `ask`
-    // TODO: DETERMINE IF OTHER TOOLS SHOULD GO HERE AS WELL
-    "bash": "allow",
-    "doom_loop": "allow",
-    "edit": "allow",
-    "external_directory": "allow",
-    "webfetch": "allow",
+    // Sensible global defaults; agents can override with more granular rules.
+    "bash": "ask", // Ask before running arbitrary shell commands
+    "edit": "allow", // File edits are okay, but tools + agent rules still apply
+    "doom_loop": "deny", // Don’t let agents spin forever
+    "external_directory": "ask", // Ask before touching paths outside project root
+    "webfetch": "allow", // Let agents use webfetch / MCPs freely
   },
 
   // NOTE: TOOLS
@@ -80,11 +78,12 @@
       },
 
       "models": {
+        // General-purpose coding / reasoning
         "MiniMax-M2": {
           // Display name in /models
           "name": "MiniMax-M2",
 
-          // Let OpenCode know this supports reasoning + tools
+          // This model supports tools and deep reasoning
           "reasoning": true,
           "tool_call": true,
 
@@ -94,65 +93,204 @@
             "output": 8192,
           },
 
-          // Per-model options – these map straight into the Anthropic-style API
+          // Default “balanced” profile
           "options": {
-            "temperature": 0.7,
+            "temperature": 0.35,
             "top_p": 0.9,
             "max_tokens": 8192,
             "stream": true,
           },
+        },
 
-          // If you really want to keep your extra metadata (cost, modalities, etc.)
-          // you can safely hang them off a metadata object, e.g.:
-          //
-          // "metadata": {
-          //   "attachment": true,
-          //   "cost": {
-          //     "cache_read": 0.0001,
-          //     "cache_write": 0.0001,
-          //     "context_over_200k": {
-          //       "cache_read": 0.0002,
-          //       "cache_write": 0.0002,
-          //       "input": 0.0005,
-          //       "output": 0.002
-          //     },
-          //     "input": 0.0003,
-          //     "output": 0.001
-          //   },
-          //   "modalities": {
-          //     "input": ["text", "image", "audio", "video"],
-          //     "output": ["text", "image"]
-          //   },
-          //   "release_date": "2024-12",
-          //   "status": "beta"
-          // }
+        // Colder, more deterministic variant for planning / reviews / config
+        "MiniMax-M2-precise": {
+          // Reuse the same underlying API model
+          "id": "MiniMax-M2",
+          "name": "MiniMax-M2-precise",
+
+          "limit": {
+            "context": 200000,
+            "output": 8192,
+          },
+          "options": {
+            "temperature": 0.1,
+            "top_p": 0.8,
+            "max_tokens": 4096,
+            "stream": true,
+          },
+        },
+
+        // Hotter, more creative variant for brainstorming and prompt design
+        "MiniMax-M2-creative": {
+          "id": "MiniMax-M2",
+          "name": "MiniMax-M2-creative",
+
+          "limit": {
+            "context": 200000,
+            "output": 8192,
+          },
+          "options": {
+            "temperature": 0.8,
+            "top_p": 0.95,
+            "max_tokens": 8192,
+            "stream": true,
+          },
         },
       },
     },
+    // "zai-coding-plan": {
+    //   // Z.ai Coding Plan API routed through LiteLLM Gateway
+    //   "name": "Z.ai Coding Plan API",
+    //   "description": "Advanced coding assistance through Z.ai, accessed via LiteLLM gateway to avoid CORS issues",
+
+    //   "options": {
+    //     // Using LiteLLM Gateway endpoint to avoid CORS restrictions
+    //     "baseURL": "{env:LITELLM_GATEWAY_ENDPOINT}",
+
+    //     // Z.ai specific endpoint configuration
+    //     "zaiEndpoint": "https://api.z.ai/api/coding/paas/v4",
+
+    //     // Routing method: direct, gateway, or auto
+    //     "routingMethod": "gateway"
+    //   },
+
+    //   "models": {
+    //     "zai-coding-model": {
+    //       "name": "Z.ai Coding Model",
+    //       "routingMethod": "gateway", // Override to ensure gateway routing
+
+    //       // Context + output token limits
+    //       "limit": {
+    //         "context": 128000,
+    //         "output": 4096,
+    //       },
+
+    //       // Default “balanced” profile
+    //       "options": {
+    //         "temperature": 0.35,
+    //         "top_p": 0.9,
+    //         "max_tokens": 4096,
+    //         "stream": true,
+    //       },
+    //     },
+    //   },
+    // },
   },
+
   // NOTE: AGENTS
   "agent": {
+    // Read-only planner / architecture agent
     "plan": {
       "color": "#FF00FF",
-      "description": "",
-      "mode": "all",
-      "model": "",
+      "description": "Planning + analysis agent. Focus on roadmaps, ADRs, and safe reviews without touching files by default.",
+      "mode": "primary",
+      // Use your main coding-capable model here
+      "model": "minimax/MiniMax-M2",
       "permission": {
-        "bash": "allow",
+        // Prefer asking before mutating anything
+        "bash": "ask",
         "doom_loop": "allow",
-        "edit": "allow",
+        "edit": "ask",
         "webfetch": "allow",
         "external_directory": "allow",
       },
+      // Optional: point to a dedicated planner prompt if you add one later
+      // "prompt": "{file:.opencode/agent/plan.md}",
       "prompt": "",
-      "temperature": 0,
-      "tools": {},
-      "top_p": 0,
+      "temperature": 0.1,
+      "tools": {
+        "read": true,
+        "grep": true,
+        "glob": true,
+        "write": false,
+        "edit": false,
+        "bash": false,
+      },
+      "top_p": 0.9,
       "disable": false,
     },
-    "explore": {},
-    "build": {},
-    "general": {},
+
+    // Default "hands-on" coding agent
+    "build": {
+      "color": "#00ff7f",
+      "description": "Default implementation agent for coding, refactors, and applying plans.",
+      "mode": "primary",
+      "model": "minimax/MiniMax-M2",
+      "temperature": 0.1,
+      "tools": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "patch": true,
+        "grep": true,
+        "glob": true,
+      },
+    },
+
+    // High-exploration / research agent
+    "explore": {
+      "color": "#00e5ff",
+      "description": "High-exploration agent for research, brainstorming, and wide search.",
+      "mode": "primary",
+      "model": "minimax/MiniMax-M2",
+      "temperature": 0.7,
+      "tools": {
+        "read": true,
+        "grep": true,
+        "glob": true,
+        "bash": false,
+        "write": false,
+        "edit": false,
+      },
+    },
+
+    // General subagent for subtasks
+    "general": {
+      "color": "#b19cd9",
+      "description": "General-purpose subagent for subtasks: searches, lookups, and focused analysis.",
+      "mode": "subagent",
+      "model": "minimax/MiniMax-M2",
+      "temperature": 0.3,
+      "tools": {
+        "read": true,
+        "grep": true,
+        "glob": true,
+        "bash": false,
+        "write": false,
+        "edit": false,
+      },
+    },
+
+    // Your custom primary orchestrators – JSON here just adds models/colors;
+    // the Markdown files keep their prompts/tools/permissions.
+    "system-builder": {
+      "color": "#00ffd5",
+      "mode": "primary",
+      "model": "minimax/MiniMax-M2",
+      "temperature": 0.2,
+    },
+    "openagent": {
+      "color": "#dfff00",
+      "mode": "primary",
+      "model": "minimax/MiniMax-M2",
+      "temperature": 0.2,
+    },
+    "codebase-agent": {
+      "color": "#7CFC00",
+      "mode": "primary",
+      "model": "minimax/MiniMax-M2",
+      "temperature": 0.1,
+    },
+    "opencoder": {
+      "color": "#9b59ff",
+      "mode": "primary",
+      "model": "minimax/MiniMax-M2",
+      "temperature": 0.1,
+    },
+
+    // NOTE: you *don’t* need to list all subagents here unless you want
+    // to override their temperatures/models – their Markdown frontmatter is enough.
   },
 
   // NOTE: INSTRUCTIONS
@@ -180,17 +318,18 @@
 
   // NOTE: MCP SERVERS
   "mcp": {
+    "docling": {
+      "type": "local",
+      "command": ["uvx", "--from=docling-mcp", "docling-mcp-server"],
+      "enabled": true,
+    },
     // -------------------------
     // Sequential Thinking (Anthropic)
     // -------------------------
     // Structured, step-by-step reasoning / planning
     "sequential-thinking": {
       "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking",
-      ],
+      "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
       "enabled": true,
     },
 
@@ -268,16 +407,7 @@
       "command": ["npx", "typescript-language-server", "--stdio"],
       "disabled": false,
       "env": {},
-      "extensions": [
-        ".ts",
-        ".tsx",
-        ".js",
-        ".jsx",
-        ".mjs",
-        ".cjs",
-        ".mts",
-        ".cts",
-      ],
+      "extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts"],
       "initialization": {},
     },
 
@@ -328,6 +458,17 @@
 
     // -------------------------
     // ADDED IN CHANGE PROPOSAL: Add LSP and Formatters
+    // Bash: LSP server and formatter for Bash shell scripting
+    // Fish Shell: LSP server and formatter for Fish shell
+    // XML: LSP server and formatter for XML files
+    // TailwindCSS: LSP and formatter for TailwindCSS
+    // GitLab CI: LSP and formatter for GitLab CI configuration
+    // GitHub Actions: LSP and formatter for GitHub Actions workflows
+    // Git: LSP for Git configuration files
+    // OpenTofu: LSP and formatter for OpenTofu/Terraform (Infrastructure as Code)
+    // Dockerfile: LSP and formatter for Dockerfile and Containerfile
+    // NixD: Alternative Nix LSP (in addition to nil)
+    // Oxide Language: LSP and formatter for the Oxide programming language
     // -------------------------
 
     // Bash
@@ -484,6 +625,17 @@
 
     // -------------------------
     // ADDED IN CHANGE PROPOSAL: Add LSP and Formatters
+    // Bash formatting: shfmt for Bash shell script formatting
+    // Fish shell formatting: fish_indent for Fish shell script formatting
+    // XML formatting: xmllint for XML document formatting
+    // TailwindCSS formatting: prettier with TailwindCSS support
+    // GitLab CI formatting: prettier for GitLab CI configuration files
+    // GitHub Actions formatting: prettier for GitHub Actions workflow files
+    // Lua formatting: lua-format for Lua code formatting
+    // OpenTofu/Terraform formatting: terraform fmt for IaC formatting
+    // Dockerfile formatting: dockerfile-formatter for Dockerfile formatting
+    // NixD formatting: alejandra (same as nil)
+    // Oxide formatting: oxc for Oxide language formatting
     // -------------------------
 
     // Bash formatting
