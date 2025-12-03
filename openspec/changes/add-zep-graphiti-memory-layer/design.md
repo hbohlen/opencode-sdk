@@ -242,6 +242,21 @@ export class MemoryService {
   }
 
   // Ingest new content into memory
+  // Process entities in batches with concurrency limit to avoid API rate limiting
+  private async processBatch<T, R>(
+    items: T[],
+    processor: (item: T) => Promise<R>,
+    concurrencyLimit: number = 5
+  ): Promise<PromiseSettledResult<R>[]> {
+    const results: PromiseSettledResult<R>[] = [];
+    for (let i = 0; i < items.length; i += concurrencyLimit) {
+      const batch = items.slice(i, i + concurrencyLimit);
+      const batchResults = await Promise.allSettled(batch.map(processor));
+      results.push(...batchResults);
+    }
+    return results;
+  }
+
   async ingestMessage(sessionId: string, message: Message): Promise<void> {
     // 1. Extract entities from message
     const entities = await this.entityExtractor.extractEntities(message);
@@ -249,11 +264,21 @@ export class MemoryService {
     // 2. Add message to current episode
     await this.graphitiClient.addMessageToEpisode(sessionId, message);
 
-    // 3. Create/update entities in graph using batch operations for performance
+    // 3. Create/update entities in graph using batch operations with concurrency limit
+    // to avoid overwhelming the Graphiti API with too many concurrent requests
     const allEntities = entities.all();
     if (allEntities.length > 0) {
-      // Use Promise.all for parallel processing of entity upserts
-      await Promise.all(allEntities.map(entity => this.upsertEntity(entity)));
+      const results = await this.processBatch(
+        allEntities,
+        entity => this.upsertEntity(entity),
+        5 // Process max 5 entities concurrently
+      );
+      
+      // Log any failed entity upserts for debugging
+      const failures = results.filter(r => r.status === 'rejected');
+      if (failures.length > 0) {
+        console.warn(`Failed to upsert ${failures.length} entities`);
+      }
     }
 
     // 4. Create edges between related entities
