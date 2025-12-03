@@ -62,9 +62,9 @@ valkey:
 
 ```conf
 # config/valkey.conf
-bind 0.0.0.0
+bind 127.0.0.1
 port 6379
-protected-mode no
+protected-mode yes
 
 # Memory management
 maxmemory 256mb
