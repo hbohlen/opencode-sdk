@@ -23,25 +23,25 @@ Integrating these allows users to:
 ## What Changes
 
 ### CLI Provider Framework
-- Create abstraction for CLI-based AI providers
-- Implement subprocess management for CLI tools
-- Handle OAuth token refresh and credential sharing
+- The system SHALL create abstraction for CLI-based AI providers
+- The system SHALL implement subprocess management for CLI tools
+- The system SHALL handle OAuth token refresh and credential sharing
 
 ### Provider Implementations
-- Claude Code integration via `claude` CLI
-- Codex CLI integration
-- Gemini CLI integration via `gemini` CLI
-- Qwen CLI integration
+- The system SHALL integrate Claude Code via `claude` CLI
+- The system SHALL integrate Codex CLI
+- The system SHALL integrate Gemini CLI via `gemini` CLI
+- The system SHALL integrate Qwen CLI
 
 ### CLIProxyAPI Pattern (Optional)
-- Investigate CLIProxyAPI SDK for unified CLI access
-- Implement custom proxy if SDK not suitable
-- Expose CLI tools as standard OpenAI-compatible endpoints
+- The system SHALL investigate CLIProxyAPI SDK for unified CLI access
+- The system SHALL implement custom proxy if SDK not suitable
+- The system SHALL expose CLI tools as standard OpenAI-compatible endpoints
 
 ### Web-UI Updates
-- Add CLI provider type to provider management
-- Show OAuth status for CLI providers
-- Guide users through CLI setup
+- The system SHALL add CLI provider type to provider management
+- The system SHALL show OAuth status for CLI providers
+- The system SHALL guide users through CLI setup
 
 ## Impact
 

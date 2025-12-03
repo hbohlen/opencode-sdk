@@ -4,43 +4,43 @@
 
 ### 1.1 Core Architecture
 
-- [ ] 1.1.1 Create `ICLIProvider` interface for CLI-based providers
-- [ ] 1.1.2 Implement CLI subprocess manager with timeout handling
-- [ ] 1.1.3 Create output parser for CLI responses (stdout/stderr)
-- [ ] 1.1.4 Add health check for CLI tool availability
-- [ ] 1.1.5 Implement streaming output handling for CLI tools
+- [x] 1.1.1 Create `ICLIProvider` interface for CLI-based providers
+- [x] 1.1.2 Implement CLI subprocess manager with timeout handling
+- [x] 1.1.3 Create output parser for CLI responses (stdout/stderr)
+- [x] 1.1.4 Add health check for CLI tool availability
+- [x] 1.1.5 Implement streaming output handling for CLI tools
 
 ### 1.2 Provider Configuration
 
-- [ ] 1.2.1 Add `cli` provider type to provider types
-- [ ] 1.2.2 Create CLI provider configuration schema
-- [ ] 1.2.3 Add CLI path resolution and validation
-- [ ] 1.2.4 Implement OAuth status checking for CLI tools
-- [ ] 1.2.5 Add CLI version detection and compatibility checking
+- [x] 1.2.1 Add `cli` provider type to provider types
+- [x] 1.2.2 Create CLI provider configuration schema
+- [x] 1.2.3 Add CLI path resolution and validation
+- [x] 1.2.4 Implement OAuth status checking for CLI tools
+- [x] 1.2.5 Add CLI version detection and compatibility checking
 
 ### 1.3 Request/Response Translation
 
-- [ ] 1.3.1 Create translator from OpenAI format to CLI arguments
-- [ ] 1.3.2 Create parser for CLI output to OpenAI format
-- [ ] 1.3.3 Handle streaming responses from CLI tools
-- [ ] 1.3.4 Implement error translation for CLI failures
+- [x] 1.3.1 Create translator from OpenAI format to CLI arguments
+- [x] 1.3.2 Create parser for CLI output to OpenAI format
+- [x] 1.3.3 Handle streaming responses from CLI tools
+- [x] 1.3.4 Implement error translation for CLI failures
 
 ## Phase 2: Claude Code Integration
 
 ### 2.1 Claude CLI Provider
 
-- [ ] 2.1.1 Research Claude Code CLI interface and arguments
-- [ ] 2.1.2 Implement `ClaudeCodeProvider` class
-- [ ] 2.1.3 Handle Claude's OAuth flow detection
-- [ ] 2.1.4 Map Claude CLI output to standard format
-- [ ] 2.1.5 Add model selection support (if multiple models available)
+- [x] 2.1.1 Research Claude Code CLI interface and arguments
+- [x] 2.1.2 Implement `ClaudeCodeProvider` class
+- [x] 2.1.3 Handle Claude's OAuth flow detection
+- [x] 2.1.4 Map Claude CLI output to standard format
+- [x] 2.1.5 Add model selection support (if multiple models available)
 
 ### 2.2 Testing
 
-- [ ] 2.2.1 Create mock for Claude CLI responses
-- [ ] 2.2.2 Test successful completion flow
-- [ ] 2.2.3 Test streaming response handling
-- [ ] 2.2.4 Test error scenarios (not installed, not authenticated)
+- [x] 2.2.1 Create mock for Claude CLI responses
+- [x] 2.2.2 Test successful completion flow
+- [x] 2.2.3 Test streaming response handling
+- [x] 2.2.4 Test error scenarios (not installed, not authenticated)
 
 ## Phase 3: Additional CLI Providers
 
