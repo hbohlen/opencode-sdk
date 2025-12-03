@@ -1,0 +1,737 @@
+{
+  // NOTE: SCHEMA
+  "$schema": "https://opencode.ai/config.json",
+
+  // NOTE: SETTINGS
+  "username": "hbohlen",
+  "tui": {
+    "diff_style": "stacked",
+    "scroll_acceleration": {
+      "enabled": true,
+    },
+    "scroll_speed": 1.5,
+  },
+  "autoupdate": "notify",
+
+  "theme": "matrix",
+
+  "layout": "stretch",
+
+  "snapshot": true,
+
+  // NOTE: WATCHER
+  "watcher": {
+    "ignore": [],
+  },
+
+  // NOTE: EXPERIMENTAL SETTINGS
+  "experimental": {
+    "batch_tool": true, // TODO: VERIFY THIS IS THE BEST SETTTINGS TO USE
+    "chatMaxRetries": 0, // TODO: DETERMINE A GOOD VALUE FOR RETRIES
+    "disable_paste_summary": true, // TODO: DETERMINE WHETHER IT SHOULD BE TRUE OR FALSE
+
+    //  TODO: RESEARCH POTENTIAL SETTINGS FOR HOOKS
+    "hook": {
+      "file_edited": {
+        // TODO: WHAT SHOULD BE RUN WHEN A FILE IS EDITED
+      },
+      "session_completed": [
+        {
+          "command": [], //  TODO: WHAT SHOULD BE RUN WHEN A SESSION IS COMPLETED
+          "environment": {
+            // TODO: WHAT SHOULD BE RUN WHEN A SESSION IS COMPLETE
+          },
+        },
+      ],
+    },
+  },
+
+  // NOTE: PERMISSIONS
+  "permission": {
+    // Sensible global defaults; agents can override with more granular rules.
+    "bash": "ask", // Ask before running arbitrary shell commands
+    "edit": "allow", // File edits are okay, but tools + agent rules still apply
+    "doom_loop": "deny", // Don’t let agents spin forever
+    "external_directory": "ask", // Ask before touching paths outside project root
+    "webfetch": "allow", // Let agents use webfetch / MCPs freely
+  },
+
+  // NOTE: TOOLS
+  "tools": {
+    // TODO: RESEARCH WHAT TOOLS SHOULD BE CONFIGURED AND HOW
+  },
+
+  // All providers go under the plural "providers" key
+  "provider": {
+    "minimax": {
+      // Use the Anthropic-compatible SDK for MiniMax M2
+      "npm": "@ai-sdk/anthropic",
+      "name": "MiniMax",
+
+      "options": {
+        // Anthropic-compatible endpoint (international)
+        // For China: https://api.minimaxi.com/anthropic/v1
+        "baseURL": "https://api.minimax.io/anthropic/v1",
+
+        // Optional if you prefer config-based auth instead of `opencode auth login`
+        // "apiKey": "{env:MINIMAX_API_KEY}"
+      },
+
+      "models": {
+        // General-purpose coding / reasoning
+        "MiniMax-M2": {
+          // Display name in /models
+          "name": "MiniMax-M2",
+
+          // This model supports tools and deep reasoning
+          "reasoning": true,
+          "tool_call": true,
+
+          // Context + output token limits so OpenCode can track headroom
+          "limit": {
+            "context": 200000,
+            "output": 8192,
+          },
+
+          // Default “balanced” profile
+          "options": {
+            "temperature": 0.35,
+            "top_p": 0.9,
+            "max_tokens": 8192,
+            "stream": true,
+          },
+        },
+
+        // Colder, more deterministic variant for planning / reviews / config
+        "MiniMax-M2-precise": {
+          // Reuse the same underlying API model
+          "id": "MiniMax-M2",
+          "name": "MiniMax-M2-precise",
+
+          "limit": {
+            "context": 200000,
+            "output": 8192,
+          },
+          "options": {
+            "temperature": 0.1,
+            "top_p": 0.8,
+            "max_tokens": 4096,
+            "stream": true,
+          },
+        },
+
+        // Hotter, more creative variant for brainstorming and prompt design
+        "MiniMax-M2-creative": {
+          "id": "MiniMax-M2",
+          "name": "MiniMax-M2-creative",
+
+          "limit": {
+            "context": 200000,
+            "output": 8192,
+          },
+          "options": {
+            "temperature": 0.8,
+            "top_p": 0.95,
+            "max_tokens": 8192,
+            "stream": true,
+          },
+        },
+      },
+    },
+    // "zai-coding-plan": {
+    //   // Z.ai Coding Plan API routed through LiteLLM Gateway
+    //   "name": "Z.ai Coding Plan API",
+    //   "description": "Advanced coding assistance through Z.ai, accessed via LiteLLM gateway to avoid CORS issues",
+
+    //   "options": {
+    //     // Using LiteLLM Gateway endpoint to avoid CORS restrictions
+    //     "baseURL": "{env:LITELLM_GATEWAY_ENDPOINT}",
+
+    //     // Z.ai specific endpoint configuration
+    //     "zaiEndpoint": "https://api.z.ai/api/coding/paas/v4",
+
+    //     // Routing method: direct, gateway, or auto
+    //     "routingMethod": "gateway"
+    //   },
+
+    //   "models": {
+    //     "zai-coding-model": {
+    //       "name": "Z.ai Coding Model",
+    //       "routingMethod": "gateway", // Override to ensure gateway routing
+
+    //       // Context + output token limits
+    //       "limit": {
+    //         "context": 128000,
+    //         "output": 4096,
+    //       },
+
+    //       // Default “balanced” profile
+    //       "options": {
+    //         "temperature": 0.35,
+    //         "top_p": 0.9,
+    //         "max_tokens": 4096,
+    //         "stream": true,
+    //       },
+    //     },
+    //   },
+    // },
+  },
+
+  // NOTE: AGENTS
+  "agent": {
+    // Read-only planner / architecture agent
+    "plan": {
+      "color": "#FF00FF",
+      "description": "Planning + analysis agent. Focus on roadmaps, ADRs, and safe reviews without touching files by default.",
+      "mode": "primary",
+      // Use your main coding-capable model here
+      "model": "minimax/MiniMax-M2",
+      "permission": {
+        // Prefer asking before mutating anything
+        "bash": "ask",
+        "doom_loop": "allow",
+        "edit": "ask",
+        "webfetch": "allow",
+        "external_directory": "allow",
+      },
+      // Optional: point to a dedicated planner prompt if you add one later
+      // "prompt": "{file:.opencode/agent/plan.md}",
+      "prompt": "",
+      "temperature": 0.1,
+      "tools": {
+        "read": true,
+        "grep": true,
+        "glob": true,
+        "write": false,
+        "edit": false,
+        "bash": false,
+      },
+      "top_p": 0.9,
+      "disable": false,
+    },
+
+    // Default "hands-on" coding agent
+    "build": {
+      "color": "#00ff7f",
+      "description": "Default implementation agent for coding, refactors, and applying plans.",
+      "mode": "primary",
+      "model": "minimax/MiniMax-M2",
+      "temperature": 0.1,
+      "tools": {
+        "read": true,
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "patch": true,
+        "grep": true,
+        "glob": true,
+      },
+    },
+
+    // High-exploration / research agent
+    "explore": {
+      "color": "#00e5ff",
+      "description": "High-exploration agent for research, brainstorming, and wide search.",
+      "mode": "primary",
+      "model": "minimax/MiniMax-M2",
+      "temperature": 0.7,
+      "tools": {
+        "read": true,
+        "grep": true,
+        "glob": true,
+        "bash": false,
+        "write": false,
+        "edit": false,
+      },
+    },
+
+    // General subagent for subtasks
+    "general": {
+      "color": "#b19cd9",
+      "description": "General-purpose subagent for subtasks: searches, lookups, and focused analysis.",
+      "mode": "subagent",
+      "model": "minimax/MiniMax-M2",
+      "temperature": 0.3,
+      "tools": {
+        "read": true,
+        "grep": true,
+        "glob": true,
+        "bash": false,
+        "write": false,
+        "edit": false,
+      },
+    },
+
+    // Your custom primary orchestrators – JSON here just adds models/colors;
+    // the Markdown files keep their prompts/tools/permissions.
+    "system-builder": {
+      "color": "#00ffd5",
+      "mode": "primary",
+      "model": "minimax/MiniMax-M2",
+      "temperature": 0.2,
+    },
+    "openagent": {
+      "color": "#dfff00",
+      "mode": "primary",
+      "model": "minimax/MiniMax-M2",
+      "temperature": 0.2,
+    },
+    "codebase-agent": {
+      "color": "#7CFC00",
+      "mode": "primary",
+      "model": "minimax/MiniMax-M2",
+      "temperature": 0.1,
+    },
+    "opencoder": {
+      "color": "#9b59ff",
+      "mode": "primary",
+      "model": "minimax/MiniMax-M2",
+      "temperature": 0.1,
+    },
+
+    // NOTE: you *don’t* need to list all subagents here unless you want
+    // to override their temperatures/models – their Markdown frontmatter is enough.
+  },
+
+  // NOTE: INSTRUCTIONS
+  "instructions": [],
+
+  // NOTE: COMMANDS
+  "command": {},
+
+  // NOTE: KEYBINDS
+  // "keybinds": {
+  //   "agent_cycle": "",
+  //   "agent_cycle_reverse": "",
+  //   "agent_list": "",
+  //   "app_exit": "",
+  //   "command_list": "",
+  //   "editor_open": "",
+  //   "history_next": "",
+  //   "history_previous": "",
+  //   "input_clear": "",
+  //   "input_forward_delete": "",
+  // },
+
+  // NOTE: PLUGINS
+  "plugin": ["@tarquinen/opencode-dcp@0.3.30"],
+
+  // NOTE: MCP SERVERS
+  "mcp": {
+    "docling": {
+      "type": "local",
+      "command": ["uvx", "--from=docling-mcp", "docling-mcp-server"],
+      "enabled": true,
+    },
+    // -------------------------
+    // Sequential Thinking (Anthropic)
+    // -------------------------
+    // Structured, step-by-step reasoning / planning
+    "sequential-thinking": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "enabled": true,
+    },
+
+    // -------------------------
+    // NixOS (mcp-nixos)
+    // -------------------------
+    // NixOS / Home Manager / nix-darwin options & packages
+    "nixos": {
+      "type": "local",
+      // Requires `uv` installed: https://mcp-nixos.io/ :contentReference[oaicite:1]{index=1}
+      "command": ["uvx", "mcp-nixos"],
+      "enabled": true,
+    },
+
+    // -------------------------
+    // Brave Search
+    // -------------------------
+    // Web search using Brave Search API
+    "brave-search": {
+      "type": "local",
+      // Official config pattern for MCP clients uses this npx command :contentReference[oaicite:2]{index=2}
+      "command": ["npx", "-y", "@modelcontextprotocol/server-brave-search"],
+      "environment": {
+        // Export BRAVE_API_KEY in your shell (ideally via 1Password)
+        "BRAVE_API_KEY": "${env:BRAVE_API_KEY}",
+      },
+      "enabled": true,
+    },
+
+    // -------------------------
+    // Context7
+    // -------------------------
+    // Live framework/library docs (remote HTTP MCP)
+    // OpenCode docs use this exact URL. :contentReference[oaicite:3]{index=3}
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      // Optional: better rate limits with an API key
+      "headers": {
+        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}",
+      },
+      "enabled": true,
+    },
+
+    // -------------------------
+    // DeepWiki
+    // -------------------------
+    // DeepWiki.com GitHub repo docs & Q&A
+    // Official remote MCP base URL. :contentReference[oaicite:4]{index=4}
+    "deepwiki": {
+      "type": "remote",
+      "url": "https://mcp.deepwiki.com/mcp",
+      "enabled": true,
+    },
+  },
+
+  // NOTE: LSP SERVERS
+  "lsp": {
+    "LSP-NAME": {
+      "command": [],
+      "disabled": false,
+      "env": {},
+      "extensions": [],
+      "initialization": {},
+    },
+    "nil": {
+      "command": ["nil"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".nix"],
+      "initialization": {},
+    },
+    // TypeScript / JavaScript
+    "typescript": {
+      "command": ["npx", "typescript-language-server", "--stdio"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts"],
+      "initialization": {},
+    },
+
+    // Python (pyright)
+    "pyright": {
+      "command": ["pyright-langserver", "--stdio"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".py", ".pyi"],
+      "initialization": {},
+    },
+
+    // Rust
+    "rust-analyzer": {
+      "command": ["rust-analyzer"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".rs"],
+      "initialization": {},
+    },
+
+    // Go
+    "gopls": {
+      "command": ["gopls"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".go"],
+      "initialization": {},
+    },
+
+    // Lua
+    "lua-ls": {
+      "command": ["lua-language-server"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".lua"],
+      "initialization": {},
+    },
+
+    // JSON (VSCode JSON LSP)
+    "json": {
+      "command": ["vscode-json-languageserver", "--stdio"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".json", ".jsonc"],
+      "initialization": {},
+    },
+
+    // -------------------------
+    // ADDED IN CHANGE PROPOSAL: Add LSP and Formatters
+    // Bash: LSP server and formatter for Bash shell scripting
+    // Fish Shell: LSP server and formatter for Fish shell
+    // XML: LSP server and formatter for XML files
+    // TailwindCSS: LSP and formatter for TailwindCSS
+    // GitLab CI: LSP and formatter for GitLab CI configuration
+    // GitHub Actions: LSP and formatter for GitHub Actions workflows
+    // Git: LSP for Git configuration files
+    // OpenTofu: LSP and formatter for OpenTofu/Terraform (Infrastructure as Code)
+    // Dockerfile: LSP and formatter for Dockerfile and Containerfile
+    // NixD: Alternative Nix LSP (in addition to nil)
+    // Oxide Language: LSP and formatter for the Oxide programming language
+    // -------------------------
+
+    // Bash
+    "bash": {
+      "command": ["npx", "-y", "bash-language-server", "start"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".sh", ".bash", ".zsh"],
+      "initialization": {},
+    },
+
+    // Fish Shell
+    "fish": {
+      "command": ["fish-lsp", "--stdio"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".fish"],
+      "initialization": {},
+    },
+
+    // XML
+    "xml": {
+      "command": ["lemminx"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".xml", ".xsd", ".xslt"],
+      "initialization": {},
+    },
+
+    // TailwindCSS
+    "tailwindcss": {
+      "command": ["npx", "-y", "tailwindcss-language-server", "--stdio"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".css", ".html"],
+      "initialization": {},
+    },
+
+    // GitLab CI
+    "gitlab-ci": {
+      "command": ["npx", "-y", "gitlab-ci-localization-server", "--stdio"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".gitlab-ci.yml", ".gitlab-ci.yaml"],
+      "initialization": {},
+    },
+
+    // GitHub Actions
+    "github-actions": {
+      "command": ["npx", "-y", "github-actions-language-server", "--stdio"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".yml", ".yaml"],
+      "initialization": {},
+    },
+
+    // Git
+    "git": {
+      "command": ["npx", "-y", "git-language-server", "--stdio"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".gitignore", ".gitattributes", ".gitmodules"],
+      "initialization": {},
+    },
+
+    // OpenTofu/Terraform
+    "opentofu": {
+      "command": ["terraform-ls", "serve"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".tf", ".tfvars"],
+      "initialization": {},
+    },
+
+    // Dockerfile
+    "docker": {
+      "command": ["npx", "-y", "dockerfile-language-server-nodejs", "--stdio"],
+      "disabled": false,
+      "env": {},
+      "extensions": ["Dockerfile", "Containerfile", ".dockerfile"],
+      "initialization": {},
+    },
+
+    // NixD (alternative to nil)
+    "nixd": {
+      "command": ["nixd"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".nix"],
+      "initialization": {},
+    },
+
+    // Oxide Language
+    "oxide": {
+      "command": ["oxc", "lsp"],
+      "disabled": false,
+      "env": {},
+      "extensions": [".ox"],
+      "initialization": {},
+    },
+  },
+
+  // NOTE: FORMATTERS
+  "formatter": {
+    // TS/JS/JSON/MD/YAML/etc with Prettier
+    "prettier": {
+      "disabled": false,
+      "command": ["npx", "prettier", "--write", "$FILE"],
+      "environment": {
+        "NODE_ENV": "development",
+      },
+      "extensions": [
+        ".js",
+        ".jsx",
+        ".ts",
+        ".tsx",
+        ".mjs",
+        ".cjs",
+        ".json",
+        ".jsonc",
+        ".md",
+        ".mdx",
+        ".html",
+        ".css",
+        ".scss",
+        ".yaml",
+        ".yml",
+      ],
+    },
+
+    // Nix formatting
+    "alejandra": {
+      "disabled": false,
+      "command": ["alejandra", "$FILE"],
+      "environment": {},
+      "extensions": [".nix"],
+    },
+
+    // Python formatting via ruff
+    "ruff": {
+      "disabled": false,
+      "command": ["ruff", "format", "$FILE"],
+      "environment": {},
+      "extensions": [".py", ".pyi"],
+    },
+
+    // Rust formatting
+    "rustfmt": {
+      "disabled": false,
+      "command": ["rustfmt", "$FILE"],
+      "environment": {},
+      "extensions": [".rs"],
+    },
+
+    // -------------------------
+    // ADDED IN CHANGE PROPOSAL: Add LSP and Formatters
+    // Bash formatting: shfmt for Bash shell script formatting
+    // Fish shell formatting: fish_indent for Fish shell script formatting
+    // XML formatting: xmllint for XML document formatting
+    // TailwindCSS formatting: prettier with TailwindCSS support
+    // GitLab CI formatting: prettier for GitLab CI configuration files
+    // GitHub Actions formatting: prettier for GitHub Actions workflow files
+    // Lua formatting: lua-format for Lua code formatting
+    // OpenTofu/Terraform formatting: terraform fmt for IaC formatting
+    // Dockerfile formatting: dockerfile-formatter for Dockerfile formatting
+    // NixD formatting: alejandra (same as nil)
+    // Oxide formatting: oxc for Oxide language formatting
+    // -------------------------
+
+    // Bash formatting
+    "shfmt": {
+      "disabled": false,
+      "command": ["shfmt", "-w", "$FILE"],
+      "environment": {},
+      "extensions": [".sh", ".bash", ".zsh"],
+    },
+
+    // Fish shell formatting
+    "fish-indent": {
+      "disabled": false,
+      "command": ["fish_indent", "$FILE"],
+      "environment": {},
+      "extensions": [".fish"],
+    },
+
+    // XML formatting
+    "xmllint": {
+      "disabled": false,
+      "command": ["xmllint", "--format", "--output", "$FILE", "$FILE"],
+      "environment": {},
+      "extensions": [".xml", ".xsd", ".xslt"],
+    },
+
+    // TailwindCSS formatting (via prettier)
+    "tailwindcss-prettier": {
+      "disabled": false,
+      "command": ["npx", "prettier", "--write", "$FILE"],
+      "environment": {
+        "NODE_ENV": "development",
+      },
+      "extensions": [".css", ".html"],
+    },
+
+    // GitLab CI formatting (via prettier)
+    "gitlab-ci-prettier": {
+      "disabled": false,
+      "command": ["npx", "prettier", "--write", "$FILE"],
+      "environment": {
+        "NODE_ENV": "development",
+      },
+      "extensions": [".gitlab-ci.yml", ".gitlab-ci.yaml"],
+    },
+
+    // GitHub Actions formatting (via prettier)
+    "github-actions-prettier": {
+      "disabled": false,
+      "command": ["npx", "prettier", "--write", "$FILE"],
+      "environment": {
+        "NODE_ENV": "development",
+      },
+      "extensions": [".github/workflows/*.yml", ".github/workflows/*.yaml"],
+    },
+
+    // Lua formatting
+    "lua-format": {
+      "disabled": false,
+      "command": ["lua-format", "-i", "$FILE"],
+      "environment": {},
+      "extensions": [".lua"],
+    },
+
+    // OpenTofu/Terraform formatting
+    "terraform-fmt": {
+      "disabled": false,
+      "command": ["terraform", "fmt", "$FILE"],
+      "environment": {},
+      "extensions": [".tf", ".tfvars"],
+    },
+
+    // Dockerfile formatting
+    "dockerfile-formatter": {
+      "disabled": false,
+      "command": ["npx", "-y", "dockerfile-formatter", "$FILE"],
+      "environment": {
+        "NODE_ENV": "development",
+      },
+      "extensions": ["Dockerfile", "Containerfile", ".dockerfile"],
+    },
+
+    // NixD formatting (use alejandra, already configured)
+    "nixd-formatter": {
+      "disabled": false,
+      "command": ["alejandra", "$FILE"],
+      "environment": {},
+      "extensions": [".nix"],
+    },
+
+    // Oxide formatting
+    "ox-fmt": {
+      "disabled": false,
+      "command": ["oxc", "format", "$FILE"],
+      "environment": {},
+      "extensions": [".ox"],
+    },
+  },
+}
