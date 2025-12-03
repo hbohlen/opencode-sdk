@@ -8,11 +8,7 @@ interface Message {
   timestamp: Date;
 }
 
-interface ChatInterfaceProps {
-  // Any props needed for the chat interface
-}
-
-const ChatInterface: React.FC<ChatInterfaceProps> = () => {
+const ChatInterface: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',

@@ -26,7 +26,7 @@ export interface EnhancedProvider {
       context: number;
       output: number;
     };
-    options?: Record<string, any>;
+    options?: Record<string, string | number | boolean>;
   }>;
 }
 
@@ -43,11 +43,18 @@ export type ProviderType = keyof typeof ProviderType;
 // Routing method decision
 export type RoutingMethod = 'direct' | 'gateway';
 
+// Connection details interface
+export interface ConnectionDetails {
+  provider: string;
+  gateway?: string;
+  baseUrl?: string;
+}
+
 // Connection result interface
 export interface ConnectionResult {
   success: boolean;
   method: RoutingMethod;
   responseTime?: number;
   error?: string;
-  details?: any;
+  details?: ConnectionDetails;
 }

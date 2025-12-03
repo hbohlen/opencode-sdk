@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useOpenCode } from '../lib/OpenCodeContext';
+import { useOpenCode } from '../lib/useOpenCode';
 import type { EnhancedProvider } from '../types/EnhancedProvider';
 import type { ModelInfo } from '../services/ModelDiscoveryService';
 
@@ -23,15 +23,15 @@ const ProviderModelCard: React.FC<ProviderModelCardProps> = ({ provider }) => {
         if (!testResult.success) {
           setError(testResult.message);
         }
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
       } finally {
         setLoading(false);
       }
     };
 
     testConnection();
-  }, [provider.id]);
+  }, [provider.id, provider, modelDiscoveryService]);
 
   const handleDiscoverModels = async () => {
     try {
@@ -39,8 +39,8 @@ const ProviderModelCard: React.FC<ProviderModelCardProps> = ({ provider }) => {
       setError(null);
       const discoveredModels = await discoverModels(provider.id);
       setModels(discoveredModels);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -79,7 +79,7 @@ const ProviderModelCard: React.FC<ProviderModelCardProps> = ({ provider }) => {
       <div className="mt-3">
         {models.length > 0 ? (
           <ul className="space-y-1">
-            {models.map((model: any) => (
+            {models.map((model) => (
               <li key={model.id} className="bg-white p-2 rounded border flex justify-between">
                 <span>{model.name}</span>
                 <button className="text-blue-600 hover:text-blue-800 text-sm">Select</button>

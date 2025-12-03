@@ -1,4 +1,5 @@
 import type { EnhancedProvider } from '../types/EnhancedProvider';
+import type { ModelData, ModelListResponse } from '../types/OpenCodeTypes';
 
 // Model interface definition
 export interface ModelInfo {
@@ -15,12 +16,23 @@ export interface ModelInfo {
   providerId: string; // Reference to the provider
 }
 
+// Connection test result interface
+interface ConnectionTestResult {
+  success: boolean;
+  message: string;
+  details?: {
+    statusCode: number;
+    modelCount: number;
+    responseTime: number;
+  };
+}
+
 // Model discovery service
 export class ModelDiscoveryService {
   constructor() {}
 
   // Extract capabilities from model data
-  private extractCapabilities(model: any): string[] {
+  private extractCapabilities(model: ModelData): string[] {
     const capabilities: string[] = ['text']; // Default capability
 
     if (model.vision) capabilities.push('vision');
@@ -35,7 +47,7 @@ export class ModelDiscoveryService {
   // Test provider connection and validate configuration
   async testProviderConnection(
     provider: EnhancedProvider
-  ): Promise<{ success: boolean; message: string; details?: any }> {
+  ): Promise<ConnectionTestResult> {
     try {
       if (!provider.baseUrl) {
         throw new Error('Base URL is required for provider configuration');
@@ -141,12 +153,12 @@ export class ModelDiscoveryService {
         throw new Error(`Gateway API request failed: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data: ModelListResponse = await response.json();
 
       // Handle different response formats
       if (data.data && Array.isArray(data.data)) {
         // OpenAI-compatible format
-        return data.data.map((model: any) => ({
+        return data.data.map((model: ModelData) => ({
           id: model.id,
           name: model.id,
           description: model.description || '',
@@ -157,8 +169,8 @@ export class ModelDiscoveryService {
         }));
       } else if (Array.isArray(data)) {
         // Direct array format
-        return data.map((model: any) => ({
-          id: model.id || model.name,
+        return (data as ModelData[]).map((model: ModelData) => ({
+          id: model.id || model.name || '',
           name: model.name || model.id,
           description: model.description || '',
           contextWindow: model.context_window || model.contextLength || 4096,
@@ -206,12 +218,12 @@ export class ModelDiscoveryService {
         throw new Error(`Direct API request failed: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data: ModelListResponse = await response.json();
 
       // Handle different response formats
       if (data.data && Array.isArray(data.data)) {
         // OpenAI-compatible format
-        return data.data.map((model: any) => ({
+        return data.data.map((model: ModelData) => ({
           id: model.id,
           name: model.id,
           description: model.description || '',
@@ -222,8 +234,8 @@ export class ModelDiscoveryService {
         }));
       } else if (Array.isArray(data)) {
         // Direct array format
-        return data.map((model: any) => ({
-          id: model.id || model.name,
+        return (data as ModelData[]).map((model: ModelData) => ({
+          id: model.id || model.name || '',
           name: model.name || model.id,
           description: model.description || '',
           contextWindow: model.context_window || model.contextLength || 4096,

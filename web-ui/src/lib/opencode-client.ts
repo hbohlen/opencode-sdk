@@ -1,10 +1,13 @@
-import { createOpencodeClient, type OpencodeClient } from '@opencode-ai/sdk/client';
+import { createOpencodeClient, type OpencodeClient, type OpencodeClientConfig } from '@opencode-ai/sdk/client';
 
 // Create a singleton instance of the OpenCode SDK
 let opencodeInstance: OpencodeClient | null = null;
 
+// SDK config type with directory option
+type SDKConfig = OpencodeClientConfig & { directory?: string };
+
 // Initialize the OpenCode SDK with the provided configuration
-export const initializeOpenCode = async (config?: any): Promise<OpencodeClient> => {
+export const initializeOpenCode = async (config?: SDKConfig): Promise<OpencodeClient> => {
   if (!opencodeInstance) {
     opencodeInstance = createOpencodeClient(config);
   }
