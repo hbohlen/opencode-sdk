@@ -33,7 +33,8 @@ A backend API server will:
 - `/api/v1/health` - Health check
 
 ### Security
-- Implement API key encryption at rest
+- Integrate 1Password CLI/SDK for secrets management (see `integrate-1password-secrets` proposal)
+- Store secret references instead of encrypted keys
 - Add CORS configuration for web-ui
 - Implement rate limiting
 - Add request validation
@@ -60,7 +61,8 @@ A backend API server will:
 
 ## Security Considerations
 
-- API keys stored encrypted in environment/config
+- API keys managed via 1Password Service Accounts (see `integrate-1password-secrets`)
+- Secret references stored instead of actual keys
 - CORS configured for known origins only
 - Rate limiting to prevent abuse
 - Input validation on all endpoints
