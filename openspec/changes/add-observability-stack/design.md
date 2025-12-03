@@ -375,15 +375,16 @@ export class LoggerService {
     this.logger.debug(message, this.redact(context || {}));
   }
 
-  // Create child logger with correlation ID
+  // Create child logger with correlation ID using Winston's native child() method
+  // This ensures the child shares the parent's transports and configuration
   child(correlationId?: string): LoggerService {
-    const childLogger = new LoggerService(this.logger.defaultMeta?.service || "unknown");
-    childLogger.setCorrelationId(correlationId || uuidv4());
-    return childLogger;
-  }
-
-  private setCorrelationId(id: string): void {
-    this.logger.defaultMeta = { ...this.logger.defaultMeta, correlationId: id };
+    const id = correlationId || uuidv4();
+    const childWinstonLogger = this.logger.child({ correlationId: id });
+    
+    // Create a new LoggerService wrapper that uses the child logger
+    const childService = Object.create(LoggerService.prototype) as LoggerService;
+    childService.logger = childWinstonLogger;
+    return childService;
   }
 }
 ```
