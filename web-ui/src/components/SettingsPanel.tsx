@@ -3,6 +3,13 @@ import { useOpenCode } from '../lib/useOpenCode';
 import type { EnhancedProvider } from '../types/EnhancedProvider';
 import ProviderModelCard from './ProviderModelCard';
 
+// Default values for routing preferences
+const DEFAULT_ROUTING_PREFERENCES = {
+  preferDirect: true,
+  fallbackEnabled: true,
+  healthCheckInterval: 30000,
+} as const;
+
 const INITIAL_FORM_STATE: Partial<EnhancedProvider> = {
   id: '',
   name: '',
@@ -10,11 +17,7 @@ const INITIAL_FORM_STATE: Partial<EnhancedProvider> = {
   apiKey: '',
   routingMethod: 'auto',
   gatewayEndpoint: '',
-  routingPreferences: {
-    preferDirect: true,
-    fallbackEnabled: true,
-    healthCheckInterval: 30000,
-  },
+  routingPreferences: DEFAULT_ROUTING_PREFERENCES,
   healthStatus: 'unknown',
   consecutiveFailures: 0,
   customHeaders: {},
@@ -358,8 +361,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                             routingPreferences: {
                               ...providerForm.routingPreferences,
                               preferDirect: e.target.checked,
-                              fallbackEnabled: providerForm.routingPreferences?.fallbackEnabled ?? true,
-                              healthCheckInterval: providerForm.routingPreferences?.healthCheckInterval ?? 30000,
+                              fallbackEnabled: providerForm.routingPreferences?.fallbackEnabled ?? DEFAULT_ROUTING_PREFERENCES.fallbackEnabled,
+                              healthCheckInterval: providerForm.routingPreferences?.healthCheckInterval ?? DEFAULT_ROUTING_PREFERENCES.healthCheckInterval,
                             },
                           })
                         }
@@ -381,8 +384,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                             routingPreferences: {
                               ...providerForm.routingPreferences,
                               fallbackEnabled: e.target.checked,
-                              preferDirect: providerForm.routingPreferences?.preferDirect ?? true,
-                              healthCheckInterval: providerForm.routingPreferences?.healthCheckInterval ?? 30000,
+                              preferDirect: providerForm.routingPreferences?.preferDirect ?? DEFAULT_ROUTING_PREFERENCES.preferDirect,
+                              healthCheckInterval: providerForm.routingPreferences?.healthCheckInterval ?? DEFAULT_ROUTING_PREFERENCES.healthCheckInterval,
                             },
                           })
                         }

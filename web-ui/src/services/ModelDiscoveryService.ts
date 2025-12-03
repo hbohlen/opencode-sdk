@@ -168,16 +168,18 @@ export class ModelDiscoveryService {
           providerId: provider.id,
         }));
       } else if (Array.isArray(data)) {
-        // Direct array format
-        return (data as ModelData[]).map((model: ModelData) => ({
-          id: model.id || model.name || '',
-          name: model.name || model.id,
-          description: model.description || '',
-          contextWindow: model.context_window || model.contextLength || 4096,
-          maxOutput: model.max_output_tokens || model.max_tokens || 4096,
-          capabilities: this.extractCapabilities(model),
-          providerId: provider.id,
-        }));
+        // Direct array format - filter out models without valid identifiers
+        return (data as ModelData[])
+          .filter((model: ModelData) => model.id || model.name)
+          .map((model: ModelData) => ({
+            id: model.id || model.name || '',
+            name: model.name || model.id,
+            description: model.description || '',
+            contextWindow: model.context_window || model.contextLength || 4096,
+            maxOutput: model.max_output_tokens || model.max_tokens || 4096,
+            capabilities: this.extractCapabilities(model),
+            providerId: provider.id,
+          }));
       } else {
         throw new Error('Invalid response format from gateway');
       }
@@ -233,16 +235,18 @@ export class ModelDiscoveryService {
           providerId: provider.id,
         }));
       } else if (Array.isArray(data)) {
-        // Direct array format
-        return (data as ModelData[]).map((model: ModelData) => ({
-          id: model.id || model.name || '',
-          name: model.name || model.id,
-          description: model.description || '',
-          contextWindow: model.context_window || model.contextLength || 4096,
-          maxOutput: model.max_output_tokens || model.max_tokens || 4096,
-          capabilities: this.extractCapabilities(model),
-          providerId: provider.id,
-        }));
+        // Direct array format - filter out models without valid identifiers
+        return (data as ModelData[])
+          .filter((model: ModelData) => model.id || model.name)
+          .map((model: ModelData) => ({
+            id: model.id || model.name || '',
+            name: model.name || model.id,
+            description: model.description || '',
+            contextWindow: model.context_window || model.contextLength || 4096,
+            maxOutput: model.max_output_tokens || model.max_tokens || 4096,
+            capabilities: this.extractCapabilities(model),
+            providerId: provider.id,
+          }));
       } else {
         throw new Error('Invalid response format from provider');
       }

@@ -40,12 +40,17 @@ export interface ChatCompletionResponse {
 }
 
 // Model data from API responses
+// Different providers use different property names for the same concepts:
+// - context_window vs contextLength: Both represent the maximum context size in tokens
+// - max_output_tokens vs max_tokens: Both represent the maximum output tokens
 export interface ModelData {
   id: string;
   name?: string;
   description?: string;
+  // OpenAI uses context_window, some providers use contextLength
   context_window?: number;
   contextLength?: number;
+  // OpenAI uses max_output_tokens, some providers use max_tokens
   max_output_tokens?: number;
   max_tokens?: number;
   vision?: boolean;
