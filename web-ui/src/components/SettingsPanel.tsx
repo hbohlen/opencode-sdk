@@ -359,10 +359,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                           setProviderForm({
                             ...providerForm,
                             routingPreferences: {
+                              ...DEFAULT_ROUTING_PREFERENCES,
                               ...providerForm.routingPreferences,
                               preferDirect: e.target.checked,
-                              fallbackEnabled: providerForm.routingPreferences?.fallbackEnabled ?? DEFAULT_ROUTING_PREFERENCES.fallbackEnabled,
-                              healthCheckInterval: providerForm.routingPreferences?.healthCheckInterval ?? DEFAULT_ROUTING_PREFERENCES.healthCheckInterval,
                             },
                           })
                         }
@@ -382,10 +381,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                           setProviderForm({
                             ...providerForm,
                             routingPreferences: {
+                              ...DEFAULT_ROUTING_PREFERENCES,
                               ...providerForm.routingPreferences,
                               fallbackEnabled: e.target.checked,
-                              preferDirect: providerForm.routingPreferences?.preferDirect ?? DEFAULT_ROUTING_PREFERENCES.preferDirect,
-                              healthCheckInterval: providerForm.routingPreferences?.healthCheckInterval ?? DEFAULT_ROUTING_PREFERENCES.healthCheckInterval,
                             },
                           })
                         }

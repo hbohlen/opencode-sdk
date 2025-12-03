@@ -29,6 +29,11 @@ export const OpenCodeProvider: React.FC<OpenCodeProviderProps> = ({ children }) 
 
     try {
       // Initialize SDK with default config (SDK doesn't use our app config)
+      if (config) {
+        console.warn(
+          '[OpenCodeProvider] The config parameter is ignored by initializeOpenCode(). SDK will use its default configuration.'
+        );
+      }
       const instance = await initializeOpenCode();
       setOpencode(instance);
 

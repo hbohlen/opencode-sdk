@@ -172,7 +172,7 @@ export class ModelDiscoveryService {
         return (data as ModelData[])
           .filter((model: ModelData) => model.id || model.name)
           .map((model: ModelData) => ({
-            id: model.id || model.name || '',
+            id: (model.id || model.name)!,
             name: model.name || model.id,
             description: model.description || '',
             contextWindow: model.context_window || model.contextLength || 4096,
@@ -239,7 +239,7 @@ export class ModelDiscoveryService {
         return (data as ModelData[])
           .filter((model: ModelData) => model.id || model.name)
           .map((model: ModelData) => ({
-            id: model.id || model.name || '',
+            id: (model.id || model.name)!,
             name: model.name || model.id,
             description: model.description || '',
             contextWindow: model.context_window || model.contextLength || 4096,
