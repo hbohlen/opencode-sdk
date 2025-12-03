@@ -541,7 +541,7 @@ groups:
           description: "Hourly cost increased by ${{ $value }}"
 
       - alert: CacheLowHitRate
-        expr: rate(opencode_cache_hits_total[5m]) / (rate(opencode_cache_hits_total[5m]) + rate(opencode_cache_misses_total[5m])) < 0.5
+        expr: rate(opencode_cache_hits_total[5m]) / clamp_min(rate(opencode_cache_hits_total[5m]) + rate(opencode_cache_misses_total[5m]), 1) < 0.5
         for: 10m
         labels:
           severity: info
