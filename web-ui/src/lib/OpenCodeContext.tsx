@@ -1,30 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import type { OpencodeClient } from '@opencode-ai/sdk/client';
 import { initializeOpenCode } from './opencode-client';
 import { ProviderRouter } from '../services/ProviderRouter';
 import type { EnhancedProvider } from '../types/EnhancedProvider';
 import { ConnectionHealthMonitor } from '../services/ConnectionHealthMonitor';
 import { ModelDiscoveryService } from '../services/ModelDiscoveryService';
-
-interface OpenCodeContextType {
-  opencode: OpencodeClient | null;
-  isLoading: boolean;
-  error: string | null;
-  initialize: (config?: any) => Promise<void>;
-  sessionManager: any; // Placeholder for session management
-  providerRouter: ProviderRouter | null;
-  providers: EnhancedProvider[];
-  addProvider: (provider: EnhancedProvider) => void;
-  updateProvider: (providerId: string, updates: Partial<EnhancedProvider>) => void;
-  removeProvider: (providerId: string) => void;
-  getProvider: (providerId: string) => EnhancedProvider | undefined;
-  healthMonitor: ConnectionHealthMonitor | null;
-  refreshProviderHealth: (providerId: string) => Promise<void>;
-  modelDiscoveryService: ModelDiscoveryService;
-  discoverModels: (providerId: string) => Promise<any[]>;
-}
-
-const OpenCodeContext = createContext<OpenCodeContextType | undefined>(undefined);
+import type { OpenCodeConfig, SessionManager } from '../types/OpenCodeTypes';
+import { OpenCodeContext } from './OpenCodeContextDef';
 
 interface OpenCodeProviderProps {
   children: ReactNode;
@@ -34,19 +16,25 @@ export const OpenCodeProvider: React.FC<OpenCodeProviderProps> = ({ children }) 
   const [opencode, setOpencode] = useState<OpencodeClient | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [sessionManager, setSessionManager] = useState<any>(null);
+  const [sessionManager, setSessionManager] = useState<SessionManager | null>(null);
   const [providerRouter, setProviderRouter] = useState<ProviderRouter | null>(null);
   const [providers, setProviders] = useState<EnhancedProvider[]>([]);
   const [healthMonitor, setHealthMonitor] = useState<ConnectionHealthMonitor | null>(null);
-  const modelDiscoveryService = new ModelDiscoveryService();
+  const modelDiscoveryService = useMemo(() => new ModelDiscoveryService(), []);
 
   // Initialize OpenCode SDK, provider router, and health monitor
-  const initialize = async (config?: any) => {
+  const initialize = useCallback(async (config?: OpenCodeConfig) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const instance = await initializeOpenCode(config);
+      // Initialize SDK with default config (SDK doesn't use our app config)
+      if (config) {
+        console.warn(
+          '[OpenCodeProvider] The config parameter is ignored by initializeOpenCode(). SDK will use its default configuration.'
+        );
+      }
+      const instance = await initializeOpenCode();
       setOpencode(instance);
 
       // Initialize provider router
@@ -82,13 +70,14 @@ export const OpenCodeProvider: React.FC<OpenCodeProviderProps> = ({ children }) 
       // Initialize session management
       // This is a placeholder - actual implementation would depend on SDK capabilities
       setSessionManager({});
-    } catch (err: any) {
-      setError(err.message || 'Failed to initialize OpenCode SDK');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to initialize OpenCode SDK';
+      setError(errorMessage);
       console.error('OpenCode initialization error:', err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // Add a new provider
   const addProvider = (provider: EnhancedProvider) => {
@@ -164,14 +153,16 @@ export const OpenCodeProvider: React.FC<OpenCodeProviderProps> = ({ children }) 
       await initialize();
     };
     init();
+  }, [initialize]);
 
-    // Clean up health monitor on unmount
+  // Clean up health monitor on unmount
+  useEffect(() => {
     return () => {
       if (healthMonitor) {
         healthMonitor.stop();
       }
     };
-  }, []);
+  }, [healthMonitor]);
 
   const value = {
     opencode,
@@ -196,12 +187,4 @@ export const OpenCodeProvider: React.FC<OpenCodeProviderProps> = ({ children }) 
       {children}
     </OpenCodeContext.Provider>
   );
-};
-
-export const useOpenCode = (): OpenCodeContextType => {
-  const context = useContext(OpenCodeContext);
-  if (context === undefined) {
-    throw new Error('useOpenCode must be used within an OpenCodeProvider');
-  }
-  return context;
 };

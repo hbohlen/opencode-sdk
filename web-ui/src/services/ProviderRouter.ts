@@ -1,5 +1,6 @@
 import type { EnhancedProvider, RoutingMethod, ConnectionResult } from '../types/EnhancedProvider';
 import { ProviderType } from '../types/EnhancedProvider';
+import type { ChatCompletionRequest, ChatCompletionResponse } from '../types/OpenCodeTypes';
 
 // LiteLLM Gateway Client
 class LiteLLMGatewayClient {
@@ -9,7 +10,7 @@ class LiteLLMGatewayClient {
     this.gatewayEndpoint = gatewayEndpoint;
   }
 
-  async routeRequest(provider: EnhancedProvider, request: any): Promise<any> {
+  async routeRequest(provider: EnhancedProvider, request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
     // In a real implementation, this would make requests to the LiteLLM gateway
     // For now, we'll simulate the functionality
     try {
@@ -77,7 +78,7 @@ class LiteLLMGatewayClient {
 
 // Direct API Client
 class DirectAPIClient {
-  async makeRequest(provider: EnhancedProvider, request: any): Promise<any> {
+  async makeRequest(provider: EnhancedProvider, request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
     // In a real implementation, this would make direct requests to the provider API
     // For now, we'll simulate the functionality
     try {
@@ -197,7 +198,7 @@ export class ProviderRouter {
   }
 
   // Execute request with automatic fallback
-  async executeRequest(provider: EnhancedProvider, request: any): Promise<any> {
+  async executeRequest(provider: EnhancedProvider, request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
     // Determine the routing method to use
     const routingMethod = await this.determineRoutingMethod(provider);
 

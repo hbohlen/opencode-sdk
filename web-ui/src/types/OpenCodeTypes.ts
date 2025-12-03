@@ -1,0 +1,69 @@
+// Configuration options for OpenCode initialization
+export interface OpenCodeConfig {
+  gatewayEndpoint?: string;
+  healthCheckInterval?: number;
+  timeout?: number;
+  maxConsecutiveFailures?: number;
+  retryDelay?: number;
+}
+
+// SessionManager is defined as an empty record type to serve as a placeholder for future session management functionality.
+// Extend this type with methods and properties as session management requirements are identified.
+export type SessionManager = Record<string, never>;
+
+// API request interface for chat completions
+export interface ChatCompletionRequest {
+  model: string;
+  messages: Array<{
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+  }>;
+  temperature?: number;
+  top_p?: number;
+  max_tokens?: number;
+  stream?: boolean;
+}
+
+// API response interface for chat completions
+export interface ChatCompletionResponse {
+  id: string;
+  object: string;
+  created: number;
+  model: string;
+  choices: Array<{
+    index: number;
+    message: {
+      role: 'assistant';
+      content: string;
+    };
+    finish_reason: string;
+  }>;
+}
+
+// Model data from API responses
+// Different providers use different property names for the same concepts:
+// - context_window vs contextLength: Both represent the maximum context size in tokens
+// - max_output_tokens vs max_tokens: Both represent the maximum output tokens
+export interface ModelData {
+  id: string;
+  name?: string;
+  description?: string;
+  // OpenAI uses context_window, some providers use contextLength
+  context_window?: number;
+  contextLength?: number;
+  // OpenAI uses max_output_tokens, some providers use max_tokens
+  max_output_tokens?: number;
+  max_tokens?: number;
+  vision?: boolean;
+  audio?: boolean;
+  function_calling?: boolean;
+  functions?: boolean;
+  reasoning?: boolean;
+  coding?: boolean;
+}
+
+// Model discovery response types
+export interface ModelListResponse {
+  data?: ModelData[];
+  object?: string;
+}

@@ -1,7 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { useOpenCode } from '../lib/OpenCodeContext';
+import React, { useState, useCallback } from 'react';
+import { useOpenCode } from '../lib/useOpenCode';
 import type { EnhancedProvider } from '../types/EnhancedProvider';
 import ProviderModelCard from './ProviderModelCard';
+
+// Default values for routing preferences
+const DEFAULT_ROUTING_PREFERENCES = {
+  preferDirect: true,
+  fallbackEnabled: true,
+  healthCheckInterval: 30000,
+} as const;
+
+const INITIAL_FORM_STATE: Partial<EnhancedProvider> = {
+  id: '',
+  name: '',
+  baseUrl: '',
+  apiKey: '',
+  routingMethod: 'auto',
+  gatewayEndpoint: '',
+  routingPreferences: DEFAULT_ROUTING_PREFERENCES,
+  healthStatus: 'unknown',
+  consecutiveFailures: 0,
+  customHeaders: {},
+};
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -12,56 +32,34 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
   const { addProvider, updateProvider, removeProvider, providers } = useOpenCode();
 
   const [activeTab, setActiveTab] = useState<'providers' | 'models'>('providers');
-  const [providerForm, setProviderForm] = useState<Partial<EnhancedProvider>>({
-    id: '',
-    name: '',
-    baseUrl: '',
-    apiKey: '',
-    routingMethod: 'auto',
-    gatewayEndpoint: '',
-    routingPreferences: {
-      preferDirect: true,
-      fallbackEnabled: true,
-      healthCheckInterval: 30000,
-    },
-    healthStatus: 'unknown',
-    consecutiveFailures: 0,
-    customHeaders: {},
-  });
+  const [providerForm, setProviderForm] = useState<Partial<EnhancedProvider>>(INITIAL_FORM_STATE);
   const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => {
-    if (selectedProviderId) {
-      const provider = providers.find((p) => p.id === selectedProviderId);
+  const resetForm = useCallback(() => {
+    setProviderForm(INITIAL_FORM_STATE);
+  }, []);
+
+  // Handle provider selection change
+  const handleSelectProvider = useCallback((providerId: string | null) => {
+    if (providerId === selectedProviderId) {
+      // Deselect if clicking same provider
+      setSelectedProviderId(null);
+      setProviderForm(INITIAL_FORM_STATE);
+      setIsEditing(false);
+    } else if (providerId) {
+      const provider = providers.find((p) => p.id === providerId);
       if (provider) {
+        setSelectedProviderId(providerId);
         setProviderForm(provider);
         setIsEditing(true);
       }
     } else {
-      resetForm();
+      setSelectedProviderId(null);
+      setProviderForm(INITIAL_FORM_STATE);
       setIsEditing(false);
     }
   }, [selectedProviderId, providers]);
-
-  const resetForm = () => {
-    setProviderForm({
-      id: '',
-      name: '',
-      baseUrl: '',
-      apiKey: '',
-      routingMethod: 'auto',
-      gatewayEndpoint: '',
-      routingPreferences: {
-        preferDirect: true,
-        fallbackEnabled: true,
-        healthCheckInterval: 30000,
-      },
-      healthStatus: 'unknown',
-      consecutiveFailures: 0,
-      customHeaders: {},
-    });
-  };
 
   if (!isOpen) return null;
 
@@ -109,10 +107,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
         setIsEditing(false);
       }
     }
-  };
-
-  const handleSelectProvider = (providerId: string) => {
-    setSelectedProviderId(providerId === selectedProviderId ? null : providerId);
   };
 
   return (
@@ -302,7 +296,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                       <select
                         value={providerForm.routingMethod || 'auto'}
                         onChange={(e) =>
-                          setProviderForm({ ...providerForm, routingMethod: e.target.value as any })
+                          setProviderForm({ ...providerForm, routingMethod: e.target.value as 'auto' | 'direct' | 'gateway' })
                         }
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       >
@@ -346,7 +340,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                           try {
                             const headers = JSON.parse(e.target.value);
                             setProviderForm({ ...providerForm, customHeaders: headers });
-                          } catch (error) {
+                          } catch {
                             // Ignore invalid JSON
                           }
                         }}
@@ -365,9 +359,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                           setProviderForm({
                             ...providerForm,
                             routingPreferences: {
+                              ...DEFAULT_ROUTING_PREFERENCES,
                               ...providerForm.routingPreferences,
                               preferDirect: e.target.checked,
-                            } as any,
+                            },
                           })
                         }
                         className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -386,9 +381,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
                           setProviderForm({
                             ...providerForm,
                             routingPreferences: {
+                              ...DEFAULT_ROUTING_PREFERENCES,
                               ...providerForm.routingPreferences,
                               fallbackEnabled: e.target.checked,
-                            } as any,
+                            },
                           })
                         }
                         className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
