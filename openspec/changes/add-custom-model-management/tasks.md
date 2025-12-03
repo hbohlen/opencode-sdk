@@ -49,9 +49,10 @@
 ### 7. Security & Performance (Phase 3)
 
 - [ ] 7.1 Implement encrypted storage for API keys
-  - **BLOCKER**: Requires Web Crypto API implementation decision
-  - **FIX**: Currently storing API keys in plain text in React state
-  - **TODO**: Implement encryption at rest using Web Crypto API
+  - **CRITICAL SECURITY FIX**: Currently storing API keys in plain text in React state
+  - **PRIORITY**: HIGH - Implement immediately before production use
+  - **TODO**: Implement encryption at rest using Web Crypto API for client-side
+  - **ALTERNATIVE**: Move API keys to server-side storage (see create-backend-api-server proposal)
 - [ ] 7.2 Add caching for model discovery
   - **TODO**: Implement TTL-based cache for discovered models
 - [ ] 7.3 Implement rate limiting and debouncing

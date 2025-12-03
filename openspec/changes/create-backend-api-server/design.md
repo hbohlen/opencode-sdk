@@ -165,12 +165,26 @@ interface EncryptedData {
   tag: string;     // Authentication tag
 }
 
-// Encryption key derived from environment variable
-const ENCRYPTION_KEY = process.env.PROVIDER_ENCRYPTION_KEY;
+// Encryption key MUST be derived using PBKDF2 from the environment variable
+// Never use the environment variable directly as the encryption key
+const ENCRYPTION_KEY_SOURCE = process.env.PROVIDER_ENCRYPTION_KEY;
+
+// Key derivation (in service initialization)
+async function deriveEncryptionKey(source: string, salt: Buffer): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    crypto.pbkdf2(source, salt, 100000, 32, 'sha256', (err, key) => {
+      if (err) reject(err);
+      else resolve(key);
+    });
+  });
+}
+
+// Store salt securely (e.g., in a separate config file)
+// The derived key is used for encryption, not the raw env var
 
 // Never log or expose decrypted keys
-function encryptApiKey(plaintext: string): EncryptedData;
-function decryptApiKey(encrypted: EncryptedData): string;
+function encryptApiKey(plaintext: string, derivedKey: Buffer): EncryptedData;
+function decryptApiKey(encrypted: EncryptedData, derivedKey: Buffer): string;
 ```
 
 ### Request Flow with Security

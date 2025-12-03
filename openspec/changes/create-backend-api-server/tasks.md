@@ -12,7 +12,16 @@
 
 ### 1.2 Install Core Dependencies
 
-- [ ] 1.2.1 Add express (or fastify - decide)
+- [ ] 1.2.1 Add express (or fastify - see Decision below)
+  
+  **Framework Decision: Express vs Fastify**
+  - **Express**: Larger ecosystem, more middleware options, team likely more familiar
+  - **Fastify**: 2-3x faster, built-in JSON schema validation, better TypeScript support
+  - **Decision Criteria**:
+    - If team has Express experience → use Express
+    - If performance is critical → use Fastify
+    - If using OpenAPI/Swagger → Fastify has better native support
+  - **Recommendation**: Start with Express for faster development, can migrate to Fastify later if needed
 - [ ] 1.2.2 Add typescript, ts-node-dev
 - [ ] 1.2.3 Add @types packages
 - [ ] 1.2.4 Add cors, helmet for security

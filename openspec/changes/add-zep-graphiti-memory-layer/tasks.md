@@ -52,7 +52,12 @@ This proposal requires external services and infrastructure that are not current
 
 - [ ] 4.1 Create EntityExtractor service
   - **BLOCKER**: Requires OpenAI API key
-  - **SECURITY**: Must sanitize input to prevent prompt injection
+  - **SECURITY**: Must implement comprehensive prompt injection prevention:
+    - Use allowlist-based input validation (reject suspicious patterns)
+    - Use parameterized prompts with explicit variable binding
+    - Implement output sanitization before storing extracted entities
+    - Apply rate limiting to prevent abuse
+    - Log and monitor extraction attempts for anomalies
 - [ ] 4.2 Implement code reference extraction
 - [ ] 4.3 Add decision extraction from conversations
 - [ ] 4.4 Implement preference detection
