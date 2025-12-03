@@ -241,7 +241,7 @@ export class CacheService {
   private hashPrompt(prompt: string, model: string): string {
     const hash = crypto.createHash("sha256");
     hash.update(`${model}:${prompt}`);
-    return hash.digest("hex").substring(0, 16);
+    return hash.digest("hex"); // Use full 64 hex chars (256 bits)
   }
 
   // Response caching
